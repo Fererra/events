@@ -29,6 +29,18 @@ presentation  →  application  →  domain  ←  infrastructure
 - Імпорт внутрішніх файлів іншого модуля заборонено ESLint-правилом `no-restricted-imports`.
 - Побічні операції (аналітика) виконуються асинхронно через Domain Event Bus після COMMIT.
 
+## Доступ до даних
+
+- **Drizzle ORM + node-postgres**, пул з'єднань (`DB_POOL_MAX`, за замовчуванням 10). Усі запити параметризовані Drizzle — захист від SQL-ін'єкцій.
+- **Схеми** — кожен модуль володіє своїми таблицями у `modules/<m>/infrastructure/*.schema.ts`.
+- **Міграції** — `npm run db:generate` створює SQL у `backend/drizzle/`; застосовуються автоматично при старті `app` (вимкнути: `DB_MIGRATE_ON_START=false`).
+- **`IUnitOfWork`** (порт у `shared/application`, реалізація `DrizzleUnitOfWork` у `shared/infrastructure/db`):
+  - `run(work)` — атомарна транзакція; вкладені виклики приєднуються до зовнішньої;
+  - `afterCommit(cb)` — побічна дія після COMMIT, асинхронно, не впливає на відповідь; при ROLLBACK скасовується.
+  - Поточна транзакція зберігається в `AsyncLocalStorage`, тож репозиторії беруть `ctx.db.executor()` і автоматично працюють у ній — use cases не бачать типів ORM.
+- **Health:** `GET /health` (liveness), `GET /health/db` (readiness, `select 1`).
+- **Тести** використовують PGlite — PostgreSQL у процесі, без Docker.
+
 ## Контракт модуля
 
 Кожен `index.ts` експортує об'єкт `AppModule` (`src/shared/module.ts`):
