@@ -5,6 +5,7 @@ import type { AppContext, AppModule } from './shared/module.js';
 import type { Database } from './shared/infrastructure/db/database.js';
 import { DrizzleUnitOfWork } from './shared/infrastructure/db/unit-of-work.js';
 import { registerErrorHandler } from './shared/presentation/error-handler.js';
+import { InProcessEventBus } from './shared/infrastructure/in-process-event-bus.js';
 import { authModule } from './modules/auth/index.js';
 import { venuesModule } from './modules/venues/index.js';
 import { eventsModule } from './modules/events/index.js';
@@ -39,7 +40,10 @@ export async function buildApp({
   const uow = new DrizzleUnitOfWork(database, (err) =>
     app.log.error({ err }, 'afterCommit callback failed'),
   );
-  const ctx: AppContext = { config, uow, db: uow };
+  const eventBus = new InProcessEventBus(uow, (err, event) =>
+    app.log.error({ err, eventType: event.type }, 'domain event handler failed'),
+  );
+  const ctx: AppContext = { config, uow, db: uow, eventBus };
 
   registerErrorHandler(app);
 
