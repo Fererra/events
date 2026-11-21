@@ -6,6 +6,15 @@ import type { Database } from './shared/infrastructure/db/database.js';
 import { DrizzleUnitOfWork } from './shared/infrastructure/db/unit-of-work.js';
 import { registerErrorHandler } from './shared/presentation/error-handler.js';
 import { InProcessEventBus } from './shared/infrastructure/in-process-event-bus.js';
+import { NodeCronScheduler } from './shared/infrastructure/node-cron-scheduler.js';
+import type { IScheduler } from './shared/application/scheduler.js';
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    /** Background job scheduler (exposed for manual runs and tests). */
+    scheduler: IScheduler;
+  }
+}
 import { authModule } from './modules/auth/index.js';
 import { venuesModule } from './modules/venues/index.js';
 import { eventsModule } from './modules/events/index.js';
@@ -43,7 +52,13 @@ export async function buildApp({
   const eventBus = new InProcessEventBus(uow, (err, event) =>
     app.log.error({ err, eventType: event.type }, 'domain event handler failed'),
   );
-  const ctx: AppContext = { config, uow, db: uow, eventBus };
+  const scheduler = new NodeCronScheduler(app.log);
+  const ctx: AppContext = { config, uow, db: uow, eventBus, scheduler };
+
+  // Background jobs tick only once the app is fully ready and stop on close.
+  if (config.scheduler.enabled) app.addHook('onReady', async () => scheduler.start());
+  app.addHook('onClose', () => scheduler.stop());
+  app.decorate('scheduler', scheduler);
 
   registerErrorHandler(app);
 
