@@ -4,7 +4,7 @@
 
 **Статуси:** ✅ реалізовано й покрито тестами · 🟡 частково (бекенд готовий, частина залежить від інших модулів або не перевірена на реальному середовищі) · ⏳ не реалізовано (картка іншого учасника).
 
-> Стан на 2026-11-21. Інтеграційні тести працюють на PGlite (PostgreSQL у процесі); запуск у Docker Compose з реальним PostgreSQL ще не перевірявся.
+> Стан на 2026-11-21. Інтеграційні тести працюють на PGlite (PostgreSQL у процесі). Розгортання в Docker Compose з реальним PostgreSQL перевіряє CI-job **Docker Compose smoke test** на кожен PR (див. [нижче](#ci)).
 
 ## Функціональні вимоги
 
@@ -40,7 +40,7 @@
 
 | # | Вимога (ЛР1, §4) | Картка | Статус | Як забезпечено | Чим підтверджено |
 |---|---|---|---|---|---|
-| N1 | Доступність ≥ 99% на місяць | ES-02 | 🟡 | `restart: unless-stopped` для всіх контейнерів; healthcheck БД, app і web; `app` стартує лише після healthy БД | `docker compose config` валідний; реальний аптайм не вимірювався |
+| N1 | Доступність ≥ 99% на місяць | ES-02 | 🟡 | `restart: unless-stopped` для всіх контейнерів; healthcheck БД, app і web; `app` стартує лише після healthy БД | CI: `docker compose up --wait` дочікується healthy-стану всіх трьох контейнерів, `app` стартує після healthy БД; реальний місячний аптайм не вимірювався |
 | N2 | 95% запитів API ≤ 300 мс при 50 RPS | ES-41 | ⏳ | пул з'єднань, побічні операції винесено з запиту (N5) | навантажувальний тест k6 — картка ES-41 |
 | N3 | Сторінки завантажуються ≤ 2 с (p95) | ES-31, ES-42 | ⏳ | — | Lighthouse — ES-42 |
 | N4 | Критичні операції виконуються атомарно | ES-03 | ✅ (для реалізованих операцій) | `IUnitOfWork` (транзакція, вкладені виклики), `SELECT … FOR UPDATE` при ротації refresh-токенів і оновленні статистики, унікальні індекси | `unit/unit-of-work.test.ts` (commit, rollback, вкладеність); `auth-register.test.ts` «concurrent registrations…»; `auth-refresh.test.ts` «reuse… revokes the whole session family»; `analytics-projector.test.ts` «does not lose updates under a burst» |
@@ -52,8 +52,8 @@
 | N10 | Адмін-дії лише для ролі `admin` | ES-11 | ✅ | `AdminGuard` на адмін-маршрутах | `auth-guards.test.ts` «admin action by a regular user → 403»; `analytics-view.test.ts` |
 | N11 | Шарова архітектура з інверсією залежностей | ES-01 | ✅ | 4 шари в кожному модулі; порти в `application`/`domain`, реалізації в `infrastructure`; домен без Fastify/ORM | ESLint (`npm run lint`): заборона імпорту `fastify`, `drizzle-orm`, `pg`, `argon2`, `jsonwebtoken`, `node-cron` у `domain` |
 | N12 | Модульний моноліт з публічними API між модулями | ES-01 | ✅ | 6 модулів, взаємодія лише через `index.ts`, порти-споживачі з адаптерами | ESLint `no-restricted-imports` на імпорт внутрішніх шарів іншого модуля; `unit/health.test.ts` «registers all six modules» |
-| N13 | Розгортання через Docker і Docker Compose | ES-02 | 🟡 | `docker-compose.yml`: web (nginx, TLS, проксі `/api`), app, postgres; назовні лише 443; міграції при старті | `docker compose config` валідний; `docker compose up` ще не запускався |
-| N14 | Постійне з'єднання з PostgreSQL | ES-03 | ✅ | пул з'єднань, readiness-ендпоінт `GET /health/db` | `unit/health.test.ts` «GET /health/db checks the database» |
+| N13 | Розгортання через Docker і Docker Compose | ES-02 | ✅ | `docker-compose.yml`: web (nginx, TLS, проксі `/api`), app, postgres; назовні лише 443; міграції при старті | CI «Docker Compose smoke test»: збірка образів і `docker compose up` з нуля; через nginx по HTTPS відповідають `/`, `/api/health`, `/api/health/db`; назовні опубліковано лише порт 443 |
+| N14 | Постійне з'єднання з PostgreSQL | ES-03 | ✅ | пул з'єднань, міграції при старті, readiness-ендпоінт `GET /health/db` | `unit/health.test.ts` «GET /health/db checks the database»; CI: `/api/health/db` на реальному PostgreSQL 17, реєстрація користувача та вхід стартового адміна проходять на застосованих міграціях |
 
 ## Покриття коду тестами
 
@@ -82,3 +82,15 @@
 |---|---|---|---|
 | Юніт (`tests/unit`) | 11 | 50 | доменні сутності, use cases з фейковими портами, JWT, конфіг, обробник помилок, UoW, шина подій, планувальник |
 | Компонентні / API (`tests/integration`) | 10 | 47 | HTTP-ендпоінти через `fastify.inject` з реальною схемою БД (PGlite): коди відповідей, JSON, права доступу, конкурентні сценарії |
+| Smoke / розгортання (CI) | — | 6 перевірок | повна система в Docker Compose: web → app → PostgreSQL |
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) на кожен pull request і push у `main`. Обидва jobs — обов'язкові перевірки: `main` захищено, зміни потрапляють туди лише через PR із зеленим CI.
+
+| Job | Кроки |
+|---|---|
+| **Backend** | Prettier → ESLint (включно з межами модулів, N11/N12) → typecheck → тести з покриттям і порогами (90% рядків / 85% гілок) → збірка; звіт покриття — артефакт `coverage-report` |
+| **Docker Compose smoke test** | `docker compose up --build --wait` → `GET /` (SPA через nginx) → `GET /api/health` → `GET /api/health/db` → `POST /api/auth/register` (201) → вхід стартового адміна → перевірка, що опубліковано лише порт 443 |
+
+Перший повністю зелений запуск — PR [#17](https://github.com/Fererra/events/pull/17).
