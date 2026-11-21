@@ -3,6 +3,7 @@ import { systemClock, uuidGenerator } from './application/ports/clock.js';
 import { TokenPairIssuer } from './application/token-pair-issuer.js';
 import { EnsureAdminUseCase } from './application/use-cases/ensure-admin.js';
 import { LoginUserUseCase } from './application/use-cases/login-user.js';
+import { RefreshTokensUseCase } from './application/use-cases/refresh-tokens.js';
 import { RegisterUserUseCase } from './application/use-cases/register-user.js';
 import { Argon2PasswordHasher } from './infrastructure/argon2-password-hasher.js';
 import { DrizzleRefreshTokenRepository } from './infrastructure/drizzle-refresh-token-repository.js';
@@ -28,6 +29,7 @@ export function createAuthContainer(ctx: AppContext) {
     registerUser: new RegisterUserUseCase(users, hasher, ctx.uow, clock, ids),
     loginUser: new LoginUserUseCase(users, hasher, issuer, ctx.uow),
     ensureAdmin: new EnsureAdminUseCase(users, hasher, ctx.uow, clock, ids),
+    refreshTokens: new RefreshTokensUseCase(tokens, refreshTokens, users, issuer, ctx.uow, clock),
   };
 }
 
