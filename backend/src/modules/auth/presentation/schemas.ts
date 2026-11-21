@@ -22,6 +22,28 @@ export const userResponse = {
   },
 } as const;
 
+/** Login does not enforce the password policy (that would leak it on old accounts). */
+export const loginBody = {
+  type: 'object',
+  required: ['email', 'password'],
+  additionalProperties: false,
+  properties: {
+    email: { type: 'string', minLength: 1, maxLength: 254 },
+    password: { type: 'string', minLength: 1, maxLength: PASSWORD_MAX_LENGTH },
+  },
+} as const;
+
+export const tokenPairResponse = {
+  type: 'object',
+  properties: {
+    tokenType: { type: 'string' },
+    accessToken: { type: 'string' },
+    expiresIn: { type: 'integer' },
+    refreshToken: { type: 'string' },
+    refreshExpiresIn: { type: 'integer' },
+  },
+} as const;
+
 export interface CredentialsBody {
   email: string;
   password: string;

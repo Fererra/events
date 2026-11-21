@@ -1,6 +1,12 @@
 import type { FastifyInstance } from 'fastify';
 import type { AuthContainer } from '../auth.container.js';
-import { credentialsBody, userResponse, type CredentialsBody } from './schemas.js';
+import {
+  credentialsBody,
+  loginBody,
+  tokenPairResponse,
+  userResponse,
+  type CredentialsBody,
+} from './schemas.js';
 
 export function registerAuthRoutes(app: FastifyInstance, auth: AuthContainer): void {
   app.post<{ Body: CredentialsBody }>(
@@ -10,5 +16,11 @@ export function registerAuthRoutes(app: FastifyInstance, auth: AuthContainer): v
       const user = await auth.registerUser.execute(request.body);
       return reply.code(201).send(user);
     },
+  );
+
+  app.post<{ Body: CredentialsBody }>(
+    '/auth/login',
+    { schema: { body: loginBody, response: { 200: tokenPairResponse } } },
+    async (request) => auth.loginUser.execute(request.body),
   );
 }
