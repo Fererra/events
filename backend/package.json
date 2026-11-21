@@ -1,0 +1,35 @@
+{
+  "name": "event-service-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Event Service — modular monolith backend (Fastify + TypeScript)",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "fastify": "^5.2.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "@types/node": "^22.13.4",
+    "eslint": "^9.20.1",
+    "eslint-config-prettier": "^10.0.1",
+    "prettier": "^3.5.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.1",
+    "vitest": "^3.0.6"
+  }
+}
