@@ -4,6 +4,7 @@ import type { AppConfig } from './shared/config/env.js';
 import type { AppContext, AppModule } from './shared/module.js';
 import type { Database } from './shared/infrastructure/db/database.js';
 import { DrizzleUnitOfWork } from './shared/infrastructure/db/unit-of-work.js';
+import { registerErrorHandler } from './shared/presentation/error-handler.js';
 import { authModule } from './modules/auth/index.js';
 import { venuesModule } from './modules/venues/index.js';
 import { eventsModule } from './modules/events/index.js';
@@ -33,6 +34,8 @@ export async function buildApp({ config, database }: AppDependencies): Promise<F
     app.log.error({ err }, 'afterCommit callback failed'),
   );
   const ctx: AppContext = { config, uow, db: uow };
+
+  registerErrorHandler(app);
 
   /** Liveness: the process is up. */
   app.get('/health', async () => ({ status: 'ok' }));
