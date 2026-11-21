@@ -31,4 +31,13 @@ export function registerAuthRoutes(app: FastifyInstance, auth: AuthContainer): v
     { schema: { body: refreshTokenBody, response: { 200: tokenPairResponse } } },
     async (request) => auth.refreshTokens.execute(request.body.refreshToken),
   );
+
+  app.post<{ Body: RefreshTokenBody }>(
+    '/auth/logout',
+    { schema: { body: refreshTokenBody } },
+    async (request, reply) => {
+      await auth.logout.execute(request.body.refreshToken);
+      return reply.code(204).send();
+    },
+  );
 }
