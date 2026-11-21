@@ -1,8 +1,16 @@
 import { buildApp } from './app.js';
 import { loadConfig } from './shared/config/env.js';
+import { connectPostgres, runMigrations } from './shared/infrastructure/db/postgres.js';
 
 const config = loadConfig();
-const app = await buildApp(config);
+const postgres = connectPostgres(config.db.url, config.db.poolMax);
+
+if (config.db.migrateOnStart) {
+  await runMigrations(postgres.db);
+}
+
+const app = await buildApp({ config, database: postgres.db });
+app.addHook('onClose', () => postgres.close());
 
 const shutdown = async (signal: string) => {
   app.log.info({ signal }, 'shutting down');
