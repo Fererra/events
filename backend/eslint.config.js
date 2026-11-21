@@ -9,13 +9,16 @@ const LAYERS = ['presentation', 'application', 'domain', 'infrastructure'];
  * Module boundaries (modular monolith, LR2 §2.2):
  * a module may import another module ONLY through its public `index.ts`.
  * Any import that reaches into `<module>/<layer>/...` of a sibling module is forbidden.
+ * The shared kernel (`src/shared`) is allowed everywhere.
  */
-const crossModuleInternals = LAYERS.flatMap((layer) => [
-  `../../*/${layer}/**`,
-  `../../../*/${layer}/**`,
-  `../../../../*/${layer}/**`,
-  `**/modules/*/${layer}/**`,
-]);
+const PREFIXES = ['../../', '../../../', '../../../../', '../../../../../'];
+const crossModuleInternals = [
+  ...LAYERS.flatMap((layer) => [
+    ...PREFIXES.map((p) => `${p}*/${layer}/**`),
+    `**/modules/*/${layer}/**`,
+  ]),
+  ...PREFIXES.map((p) => `!${p}shared/**`),
+];
 
 export default tseslint.config(
   { ignores: ['dist/**', 'coverage/**', 'drizzle/**', 'node_modules/**'] },
