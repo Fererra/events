@@ -22,6 +22,8 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-events}:${POSTGRES_PASSWORD:-events}@postgres:5432/${POSTGRES_DB:-events}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET in .env}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?set JWT_REFRESH_SECRET in .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     expose:
       - '3000'
     depends_on:

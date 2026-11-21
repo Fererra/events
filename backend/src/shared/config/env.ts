@@ -15,6 +15,9 @@ export interface AppConfig {
     accessTtlSeconds: number;
     /** 7 days by default (LR2 §5). */
     refreshTtlSeconds: number;
+    /** Bootstrap administrator, created on start if both are set. */
+    adminEmail: string | undefined;
+    adminPassword: string | undefined;
   };
 }
 
@@ -55,6 +58,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       refreshSecret: readSecret(env, 'JWT_REFRESH_SECRET', nodeEnv),
       accessTtlSeconds: readInt(env, 'JWT_ACCESS_TTL_SECONDS', 15 * 60),
       refreshTtlSeconds: readInt(env, 'JWT_REFRESH_TTL_SECONDS', 7 * 24 * 60 * 60),
+      adminEmail: env.ADMIN_EMAIL || undefined,
+      adminPassword: env.ADMIN_PASSWORD || undefined,
     },
   };
 }
