@@ -6,6 +6,8 @@
  */
 import type { AppModule } from '../../shared/module.js';
 
+export type { EventCancelled } from './domain/event-events.js';
+
 export const eventsModule: AppModule = {
   name: 'events',
   register() {

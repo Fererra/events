@@ -12,6 +12,7 @@ import { StubMyRegistrationsReadModel } from './infrastructure/stub-my-registrat
 import { registerMyRegistrationsRoutes } from './presentation/my-registrations.routes.js';
 
 export type { MyRegistrationDto } from './application/queries/list-my-registrations.js';
+export type { RegistrationCancelled, RegistrationCreated } from './domain/registration-events.js';
 export type {
   IMyRegistrationsReadModel,
   MyRegistrationView,
