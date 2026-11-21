@@ -5,11 +5,12 @@ import { createTestApp } from '../helpers/test-app.js';
 
 describe('app skeleton', () => {
   let app: FastifyInstance;
+  let close: () => Promise<void>;
 
   beforeAll(async () => {
-    app = await createTestApp();
+    ({ app, close } = await createTestApp());
   });
-  afterAll(() => app.close());
+  afterAll(() => close());
 
   it('GET /health returns ok', async () => {
     const res = await app.inject({ method: 'GET', url: '/health' });
