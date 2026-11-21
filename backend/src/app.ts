@@ -24,10 +24,16 @@ export const modules: readonly AppModule[] = [
 export interface AppDependencies {
   config: AppConfig;
   database: Database;
+  /** Override the module list (tests swap adapters through module factories). */
+  modules?: readonly AppModule[];
 }
 
 /** Composition root: builds the Fastify app and registers every module. */
-export async function buildApp({ config, database }: AppDependencies): Promise<FastifyInstance> {
+export async function buildApp({
+  config,
+  database,
+  modules: moduleList = modules,
+}: AppDependencies): Promise<FastifyInstance> {
   const app = Fastify({ logger: { level: config.logLevel } });
 
   const uow = new DrizzleUnitOfWork(database, (err) =>
@@ -51,7 +57,7 @@ export async function buildApp({ config, database }: AppDependencies): Promise<F
     }
   });
 
-  for (const module of modules) {
+  for (const module of moduleList) {
     await app.register(async (scope) => module.register(scope, ctx));
   }
 
