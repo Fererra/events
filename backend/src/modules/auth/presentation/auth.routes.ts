@@ -3,9 +3,11 @@ import type { AuthContainer } from '../auth.container.js';
 import {
   credentialsBody,
   loginBody,
+  refreshTokenBody,
   tokenPairResponse,
   userResponse,
   type CredentialsBody,
+  type RefreshTokenBody,
 } from './schemas.js';
 
 export function registerAuthRoutes(app: FastifyInstance, auth: AuthContainer): void {
@@ -22,5 +24,11 @@ export function registerAuthRoutes(app: FastifyInstance, auth: AuthContainer): v
     '/auth/login',
     { schema: { body: loginBody, response: { 200: tokenPairResponse } } },
     async (request) => auth.loginUser.execute(request.body),
+  );
+
+  app.post<{ Body: RefreshTokenBody }>(
+    '/auth/refresh',
+    { schema: { body: refreshTokenBody, response: { 200: tokenPairResponse } } },
+    async (request) => auth.refreshTokens.execute(request.body.refreshToken),
   );
 }

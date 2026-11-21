@@ -44,6 +44,19 @@ export const tokenPairResponse = {
   },
 } as const;
 
+export const refreshTokenBody = {
+  type: 'object',
+  required: ['refreshToken'],
+  additionalProperties: false,
+  properties: {
+    refreshToken: { type: 'string', minLength: 1, maxLength: 2048 },
+  },
+} as const;
+
+export interface RefreshTokenBody {
+  refreshToken: string;
+}
+
 export interface CredentialsBody {
   email: string;
   password: string;
