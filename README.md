@@ -14,7 +14,30 @@
 
 ## Стек
 
-TypeScript · Fastify · Drizzle ORM · PostgreSQL · JWT + Argon2 · React.js · Docker Compose · Vitest
+TypeScript · Fastify · Drizzle ORM · PostgreSQL · JWT + Argon2 · node-cron · React.js · Docker Compose · Vitest
+
+## API
+
+| Метод | Шлях | Доступ | Картка |
+|---|---|---|---|
+| GET | `/health`, `/health/db` | всі | ES-01, ES-03 |
+| POST | `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout` | гість | ES-07…ES-10 |
+| GET | `/me` | `user` / `admin` | ES-12 |
+| GET | `/me/registrations` | `user` / `admin` | ES-26 |
+| GET | `/analytics/events?from&to&status` | `admin` | ES-28 |
+
+Детальніше: [docs/api-auth.md](docs/api-auth.md), [docs/api-analytics.md](docs/api-analytics.md), формат помилок — [docs/api-errors.md](docs/api-errors.md).
+
+## Тимчасові заглушки (порти, що чекають на інші модулі)
+
+Код, що залежить від ще не реалізованих модулів, працює через порти із заглушками. Use case, маршрут і DTO — фінальні; замінюється лише адаптер в `infrastructure/`.
+
+| Порт | Заглушка | Чекає на |
+|---|---|---|
+| `IMyRegistrationsReadModel` (registrations) | `StubMyRegistrationsReadModel` → `[]` | ES-17, ES-21, ES-23 |
+| `IEventCatalog` (analytics → events) | `StubEventCatalog` → `[]` | ES-17, ES-19 |
+| `IEventLifecycleRepository` (events, для планувальника) | `StubEventLifecycleRepository` → `[]` | ES-17 |
+| Публікація `RegistrationCreated` / `RegistrationCancelled` / `EventCancelled` | контракти описані, публікацію додають use cases | ES-23, ES-24/25, ES-20 |
 
 ## Структура репозиторію
 
@@ -60,7 +83,18 @@ npm install
 npm run dev        # http://localhost:3000/health
 ```
 
-Інші команди: `npm run build`, `npm start`, `npm test`, `npm run lint`, `npm run typecheck`, `npm run format`.
+Потрібен запущений PostgreSQL (`DATABASE_URL`, за замовчуванням `postgres://events:events@localhost:5432/events`), наприклад `docker compose up -d postgres` з відкритим портом або локальний сервер. Міграції застосовуються автоматично при старті.
+
+Інші команди: `npm run build`, `npm start`, `npm test`, `npm run lint`, `npm run typecheck`, `npm run format`, `npm run db:generate` (нова міграція після зміни `*.schema.ts`).
+
+## Тести
+
+```bash
+cd backend
+npm test
+```
+
+Юніт-тести (`tests/unit`) працюють з in-memory фейками портів, інтеграційні (`tests/integration`) — з повним застосунком через `fastify.inject` на **PGlite** (PostgreSQL у процесі), тому Docker для тестів не потрібен.
 
 ## Команда
 
