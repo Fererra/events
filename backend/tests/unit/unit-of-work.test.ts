@@ -3,6 +3,7 @@ import { sql } from 'drizzle-orm';
 import type { Database } from '../../src/shared/infrastructure/db/database.js';
 import { DrizzleUnitOfWork } from '../../src/shared/infrastructure/db/unit-of-work.js';
 import { createTestDatabase } from '../helpers/test-db.js';
+import { rowsOf } from '../helpers/test-app.js';
 
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
@@ -13,7 +14,7 @@ describe('DrizzleUnitOfWork', () => {
 
   const count = async () => {
     const res = await uow.executor().execute(sql`select count(*)::int as n from uow_probe`);
-    const { rows } = res as unknown as { rows: { n: number }[] };
+    const rows = rowsOf<{ n: number }>(res);
     return rows[0]?.n ?? 0;
   };
   const insert = () => uow.executor().execute(sql`insert into uow_probe default values`);
