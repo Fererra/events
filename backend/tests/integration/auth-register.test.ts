@@ -35,6 +35,22 @@ describe('POST /auth/register', () => {
     expect(res.json()).toEqual({ code: 'EMAIL_TAKEN', message: 'Email is already taken' });
   });
 
+  it('concurrent registrations with the same e-mail: exactly one wins, others → 409', async () => {
+    const results = await Promise.all(
+      Array.from({ length: 5 }, () =>
+        register({ email: 'race@example.com', password: 'secret-pass' }),
+      ),
+    );
+    const codes = results.map((r) => r.statusCode).sort();
+    expect(codes).toEqual([201, 409, 409, 409, 409]);
+    const rows = rowsOf<{ n: number }>(
+      await t.db.execute(
+        sql`select count(*)::int as n from users where email = 'race@example.com'`,
+      ),
+    );
+    expect(rows[0]?.n).toBe(1);
+  });
+
   it('invalid body → 400 VALIDATION_ERROR with fields', async () => {
     const res = await register({ email: 'nope', password: '123' });
     expect(res.statusCode).toBe(400);
