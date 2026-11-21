@@ -15,6 +15,13 @@
       "when": 1795275545278,
       "tag": "0001_auth_refresh_tokens",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795276332574,
+      "tag": "0002_analytics_event_stats",
+      "breakpoints": true
     }
   ]
 }
