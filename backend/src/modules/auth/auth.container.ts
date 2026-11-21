@@ -2,6 +2,7 @@ import type { AppContext } from '../../shared/module.js';
 import { systemClock, uuidGenerator } from './application/ports/clock.js';
 import { TokenPairIssuer } from './application/token-pair-issuer.js';
 import { EnsureAdminUseCase } from './application/use-cases/ensure-admin.js';
+import { GetProfileQuery } from './application/use-cases/get-profile.js';
 import { LoginUserUseCase } from './application/use-cases/login-user.js';
 import { LogoutUseCase } from './application/use-cases/logout.js';
 import { RefreshTokensUseCase } from './application/use-cases/refresh-tokens.js';
@@ -32,6 +33,7 @@ export function createAuthContainer(ctx: AppContext) {
     ensureAdmin: new EnsureAdminUseCase(users, hasher, ctx.uow, clock, ids),
     refreshTokens: new RefreshTokensUseCase(tokens, refreshTokens, users, issuer, ctx.uow, clock),
     logout: new LogoutUseCase(tokens, refreshTokens, ctx.uow, clock),
+    getProfile: new GetProfileQuery(users),
   };
 }
 

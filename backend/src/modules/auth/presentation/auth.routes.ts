@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { AuthContainer } from '../auth.container.js';
+import { currentUser } from './guards.js';
 import {
   credentialsBody,
   loginBody,
@@ -39,5 +40,11 @@ export function registerAuthRoutes(app: FastifyInstance, auth: AuthContainer): v
       await auth.logout.execute(request.body.refreshToken);
       return reply.code(204).send();
     },
+  );
+
+  app.get(
+    '/me',
+    { preHandler: auth.guards.requireAuth, schema: { response: { 200: userResponse } } },
+    async (request) => auth.getProfile.execute(currentUser(request).userId),
   );
 }
