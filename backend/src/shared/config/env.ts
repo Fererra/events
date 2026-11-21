@@ -19,6 +19,10 @@ export interface AppConfig {
     adminEmail: string | undefined;
     adminPassword: string | undefined;
   };
+  scheduler: {
+    /** Background jobs (node-cron). Off in tests, on elsewhere unless SCHEDULER_ENABLED=false. */
+    enabled: boolean;
+  };
 }
 
 function readSecret(env: NodeJS.ProcessEnv, name: string, nodeEnv: string): string {
@@ -60,6 +64,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       refreshTtlSeconds: readInt(env, 'JWT_REFRESH_TTL_SECONDS', 7 * 24 * 60 * 60),
       adminEmail: env.ADMIN_EMAIL || undefined,
       adminPassword: env.ADMIN_PASSWORD || undefined,
+    },
+    scheduler: {
+      enabled: (env.SCHEDULER_ENABLED ?? (nodeEnv === 'test' ? 'false' : 'true')) !== 'false',
     },
   };
 }
