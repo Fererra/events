@@ -32,10 +32,25 @@ backend/
         domain/         сутності, об'єкти-значення, інтерфейси репозиторіїв
         infrastructure/ реалізації портів (ORM, Argon2, JWT, адаптери)
   tests/                тести (Vitest)
+  Dockerfile            образ app
+docker/web/             образ web (nginx, TLS, SPA)
+docker-compose.yml      web + app + postgres
 docs/                   документація проєкту
 ```
 
-## Запуск (локально)
+## Запуск через Docker Compose
+
+Три контейнери: `web` (nginx: збірка SPA + проксі `/api` → `app`, HTTPS), `app` (Fastify), `postgres` (дані в іменованому volume `pgdata`). `app` стартує лише після успішного healthcheck БД, `web` — після healthcheck `app`; усі сервіси мають `restart: unless-stopped`. Назовні відкритий лише порт 443.
+
+```bash
+cp .env.example .env      # змініть секрети JWT
+docker compose up -d --build
+# https://localhost/  (самопідписаний сертифікат), API: https://localhost/api/health
+```
+
+Якщо порт 443 зайнятий, задайте `HTTPS_PORT=8443` у `.env`.
+
+## Запуск бекенду локально (без Docker)
 
 Потрібен Node.js ≥ 22.
 

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Event Service</title>
+  </head>
+  <body style="font-family: system-ui, sans-serif; max-width: 40rem; margin: 4rem auto; padding: 0 1rem">
+    <h1>Event Service</h1>
+    <p>Веб-інтерфейс ще в розробці (ES-29). Стан API: <code id="status">…</code></p>
+    <script>
+      fetch('/api/health')
+        .then((r) => r.json())
+        .then((b) => (document.getElementById('status').textContent = b.status))
+        .catch(() => (document.getElementById('status').textContent = 'unavailable'));
+    </script>
+  </body>
+</html>
