@@ -102,6 +102,12 @@ npm run test:coverage   # звіт у терміналі + backend/coverage/inde
 
 Поточний стан: **97 тестів**, покриття **97.2%** рядків / **92.5%** гілок.
 
+CI (GitHub Actions, `.github/workflows/ci.yml`) на кожен PR і push у `main`:
+- **backend** — Prettier, ESLint (з межами модулів), typecheck, тести з покриттям (поріг 90% рядків / 85% гілок), збірка; звіт покриття — артефакт `coverage-report`;
+- **docker** — `docker compose up --build --wait` і smoke-тест через nginx: `/`, `/api/health`, `/api/health/db`, реєстрація та вхід стартового адміна на реальному PostgreSQL; перевірка, що назовні опубліковано лише HTTPS-порт.
+
+У `main` зміни потрапляють лише через PR із зеленими перевірками.
+
 ## Виконання вимог
 
 [docs/requirements-traceability.md](docs/requirements-traceability.md) — матриця «вимога ЛР1 → картка → реалізація → тести» для всіх функціональних (F1–F25) і нефункціональних (N1–N14) вимог, а також покриття коду за модулями.
