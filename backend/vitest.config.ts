@@ -20,6 +20,8 @@ export default defineConfig({
         'src/shared/infrastructure/db/database.ts',
       ],
       reporter: ['text', 'text-summary', 'html', 'json-summary'],
+      // CI fails if coverage drops below these (current: ~97% lines, ~92% branches).
+      thresholds: { lines: 90, statements: 90, branches: 85, functions: 85 },
       reportsDirectory: 'coverage',
     },
   },
