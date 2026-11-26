@@ -1,0 +1,149 @@
+.container {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.main {
+  flex: 1;
+  padding-top: 24px;
+  padding-bottom: 40px;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #fff;
+  border-bottom: 1px solid var(--blue-200);
+}
+.header__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 60px;
+  flex-wrap: wrap;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: var(--blue-900);
+  text-decoration: none;
+}
+.nav {
+  display: none;
+  width: 100%;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0 16px;
+}
+.nav--open {
+  display: flex;
+}
+.nav a:not(.btn) {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text);
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+.nav a svg {
+  flex-shrink: 0;
+}
+.nav a:not(.btn):hover {
+  background: var(--blue-100);
+}
+.nav a.active:not(.btn) {
+  color: var(--blue-700);
+  background: var(--blue-100);
+  font-weight: 600;
+}
+.nav__spacer {
+  flex: 1;
+}
+.nav .btn {
+  text-align: center;
+}
+
+.burger {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  background: none;
+  border: 1px solid var(--blue-200);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.burger span {
+  display: block;
+  height: 2px;
+  background: var(--blue-900);
+  border-radius: 2px;
+}
+
+@media (min-width: 760px) {
+  .burger {
+    display: none;
+  }
+  .nav,
+  .nav--open {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+    flex: 1;
+    padding: 0 0 0 24px;
+  }
+}
+
+.footer {
+  border-top: 1px solid var(--blue-200);
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 16px 0;
+}
+
+.page-header {
+  margin-bottom: 20px;
+}
+.page-header h1 {
+  margin-bottom: 6px;
+}
+.page-header__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.page-header__title svg {
+  color: var(--blue-700);
+  flex-shrink: 0;
+}
+.page-header p {
+  margin: 0;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 14px;
+}
+.back-link:hover {
+  text-decoration: underline;
+}

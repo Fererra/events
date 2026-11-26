@@ -41,6 +41,7 @@ const MESSAGES: Record<string, string> = {
   INVALID_REFRESH_TOKEN: 'Your session has expired. Please sign in again.',
   FORBIDDEN: 'You do not have permission to do this.',
   EVENT_NOT_FOUND: 'Event not found.',
+  VENUE_NOT_FOUND: 'Venue not found.',
   ROUTE_NOT_FOUND: 'Resource not found.',
   EMAIL_TAKEN: 'This email is already registered. Try signing in instead.',
   ADDRESS_TAKEN: 'A venue with this address already exists.',

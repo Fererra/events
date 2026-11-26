@@ -2,17 +2,20 @@ import { Route, Routes } from 'react-router-dom';
 import { Layout } from './Layout';
 import { GuestOnly, RequireAuth } from './guards';
 import { LoginPage, ProfilePage, RegisterPage } from '../features/auth';
+import { EventDetailsPage, EventsListPage } from '../features/events';
 import { HomePage } from '../features/home';
+import { VenueDetailsPage, VenuesListPage } from '../features/venues';
 import { NotFoundPage } from '../pages/NotFoundPage';
-import { PlaceholderPage } from '../pages/PlaceholderPage';
 
 export function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
-        <Route path="events" element={<PlaceholderPage title="Events" />} />
-        <Route path="venues" element={<PlaceholderPage title="Venues" />} />
+        <Route path="events" element={<EventsListPage />} />
+        <Route path="events/:id" element={<EventDetailsPage />} />
+        <Route path="venues" element={<VenuesListPage />} />
+        <Route path="venues/:id" element={<VenueDetailsPage />} />
         <Route element={<GuestOnly />}>
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { logout, useAuthStore, useIsAuthed } from '../features/auth';
+import { MapPinIcon, TicketIcon } from '../shared/components/Icons';
 
 function Logo() {
   return (
@@ -48,8 +49,14 @@ export function Layout() {
             <span />
           </button>
           <nav id="main-nav" className={`nav${open ? ' nav--open' : ''}`}>
-            <NavLink to="/events">Events</NavLink>
-            <NavLink to="/venues">Venues</NavLink>
+            <NavLink to="/events">
+              <TicketIcon size={17} />
+              <span>Events</span>
+            </NavLink>
+            <NavLink to="/venues">
+              <MapPinIcon size={17} />
+              <span>Venues</span>
+            </NavLink>
             <span className="nav__spacer" />
             {authed ? (
               <>
