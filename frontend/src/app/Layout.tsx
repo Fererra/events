@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { logout } from '../api/auth';
-import { useAuthStore, useIsAuthed } from '../store/auth';
+import { logout, useAuthStore, useIsAuthed } from '../features/auth';
 
 function Logo() {
   return (
@@ -54,11 +53,11 @@ export function Layout() {
             <span className="nav__spacer" />
             {authed ? (
               <>
-                <NavLink to="/profile" className="nav__user" title={email}>
+                <NavLink to="/profile" title={email}>
                   Profile
                 </NavLink>
                 <button type="button" className="btn btn--ghost" onClick={onLogout}>
-                  Log out
+                  Sign out
                 </button>
               </>
             ) : (

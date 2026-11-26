@@ -30,28 +30,32 @@ export function toApiError(status: number, body: unknown): ApiError {
 }
 
 const MESSAGES: Record<string, string> = {
-  VALIDATION_ERROR: 'Please check that all fields are filled out correctly.',
-  CAPACITY_INVALID: 'Capacity must be a positive integer.',
-  UNAUTHORIZED: 'You need to sign in.',
-  INVALID_TOKEN: 'Invalid session. Please sign in again.',
+  VALIDATION_ERROR: 'Please check the highlighted fields and try again.',
+  PASSWORD_INVALID: 'Password must be between 8 and 128 characters.',
+  CAPACITY_INVALID: 'Capacity must be a positive whole number.',
+  PERIOD_INVALID: 'Start date must be earlier than or equal to end date.',
+  UNAUTHORIZED: 'Please sign in to continue.',
+  INVALID_TOKEN: 'Your session is no longer valid. Please sign in again.',
   TOKEN_EXPIRED: 'Your session has expired. Please sign in again.',
-  INVALID_CREDENTIALS: 'Invalid email or password.',
+  INVALID_CREDENTIALS: 'Incorrect email or password.',
   INVALID_REFRESH_TOKEN: 'Your session has expired. Please sign in again.',
-  FORBIDDEN: 'You do not have permission to perform this action.',
+  FORBIDDEN: 'You do not have permission to do this.',
   EVENT_NOT_FOUND: 'Event not found.',
   ROUTE_NOT_FOUND: 'Resource not found.',
-  EMAIL_TAKEN: 'This email is already registered. Try signing in.',
+  EMAIL_TAKEN: 'This email is already registered. Try signing in instead.',
   ADDRESS_TAKEN: 'A venue with this address already exists.',
   TICKETS_SOLD_OUT: 'Tickets of this type are sold out. Please choose another type.',
-  INVALID_STATUS_TRANSITION: 'Cannot change the event status to the selected one.',
-  INTERNAL_ERROR: 'Something went wrong on the server. Please try again later.',
-  NETWORK_ERROR: 'Unable to connect to the server. Please check your internet connection.',
+  INVALID_STATUS_TRANSITION: 'This status change is not allowed.',
+  INTERNAL_ERROR: 'Something went wrong on our side. Please try again later.',
+  NETWORK_ERROR: 'Cannot reach the server. Check your internet connection and try again.',
 };
 
 const FIELD_LABELS: Record<string, string> = {
   email: 'Email',
   password: 'Password',
   name: 'Name',
+  surname: 'Surname',
+  phone: 'Phone',
   address: 'Address',
   capacity: 'Capacity',
 };
@@ -67,7 +71,7 @@ export function normalizeError(error: unknown): ApiError {
 
 export function errorText(error: unknown): string {
   const e = normalizeError(error);
-  return MESSAGES[e.code] ?? 'Failed to complete the action. Please try again.';
+  return MESSAGES[e.code] ?? 'Something went wrong. Please try again.';
 }
 
 export function fieldErrors(error: unknown): Record<string, string> {

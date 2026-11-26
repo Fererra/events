@@ -41,5 +41,5 @@ export const useAuthStore = create<AuthState>()(
   ),
 );
 
-export const useIsAuthed = () => useAuthStore((s) => s.refreshToken !== null);
+export const useIsAuthed = () => useAuthStore((s) => s.user !== null && s.refreshToken !== null);
 export const useRole = () => useAuthStore((s) => s.user?.role ?? null);
