@@ -48,6 +48,8 @@ const MESSAGES: Record<string, string> = {
   TICKET_NOT_FOUND: 'Selected ticket type was not found.',
   TICKETS_SOLD_OUT: 'Tickets of this type are sold out. Please choose another type.',
   EVENT_REGISTRATION_CLOSED: 'Registration for this event is currently closed.',
+  REGISTRATION_NOT_FOUND: 'Registration not found.',
+  REGISTRATION_ALREADY_CANCELLED: 'This registration has already been cancelled.',
   INVALID_STATUS_TRANSITION: 'This status change is not allowed.',
   INTERNAL_ERROR: 'Something went wrong on our side. Please try again later.',
   NETWORK_ERROR: 'Cannot reach the server. Check your internet connection and try again.',

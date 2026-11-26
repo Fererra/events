@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { login } from '../api/auth.api';
+import { login, USE_AUTH_MOCK } from '../api/auth.api';
+import { MOCK_DEMO_CREDENTIALS } from '../api/auth.mock';
 import { fieldErrors } from '../../../shared/api/errors';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { TextField } from '../../../shared/components/TextField';
@@ -37,6 +38,20 @@ export function LoginPage() {
     }
   });
 
+  const onDemoLogin = async () => {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await login(MOCK_DEMO_CREDENTIALS.email, MOCK_DEMO_CREDENTIALS.password);
+      navigate(from, { replace: true });
+    } catch (e) {
+      setError(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <section className="narrow">
       <h1>Sign in</h1>
@@ -66,6 +81,24 @@ export function LoginPage() {
           </Link>
         </p>
       </form>
+      {USE_AUTH_MOCK && (
+        <div className="card demo-box">
+          <p className="demo-box__title">Demo account (mock mode)</p>
+          <p className="demo-box__creds muted">
+            Email: <code>{MOCK_DEMO_CREDENTIALS.email}</code>
+            <br />
+            Password: <code>{MOCK_DEMO_CREDENTIALS.password}</code>
+          </p>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            disabled={busy}
+            onClick={onDemoLogin}
+          >
+            Sign in as demo user
+          </button>
+        </div>
+      )}
     </section>
   );
 }

@@ -1,4 +1,6 @@
-import type { EventRegistration, TicketType } from '../types';
+import { MOCK_DEMO_USER_ID } from '../../auth/api/auth.mock';
+import { MOCK_EVENTS } from '../../events/api/events.mock';
+import type { EventRegistration, MyRegistration, TicketType } from '../types';
 
 interface MockTicketSeed {
   id: number;
@@ -8,6 +10,8 @@ interface MockTicketSeed {
   price: number;
   initialSold: number;
 }
+
+const STORAGE_KEY = 'es-mock-registrations-v2';
 
 const MOCK_TICKET_SEEDS: MockTicketSeed[] = [
   // Event 1: KPI Software Engineering Summit 2026 (ACTIVE)
@@ -70,10 +74,81 @@ const MOCK_TICKET_SEEDS: MockTicketSeed[] = [
   { id: 31, eventId: 14, type: 'Supporter Pass', limit: 150, price: 250, initialSold: 0 },
 ];
 
-const mockRegistrations: EventRegistration[] = [];
+const SEED_REGISTRATIONS: EventRegistration[] = [
+  {
+    id: 'reg-seed-0001',
+    userId: MOCK_DEMO_USER_ID,
+    ticketId: 3,
+    status: 'ACTIVE',
+    registrationTimestamp: '2026-11-18T11:20:00.000Z',
+  },
+  {
+    id: 'reg-seed-0002',
+    userId: MOCK_DEMO_USER_ID,
+    ticketId: 8,
+    status: 'ACTIVE',
+    registrationTimestamp: '2026-11-21T15:45:00.000Z',
+  },
+  {
+    id: 'reg-seed-0003',
+    userId: MOCK_DEMO_USER_ID,
+    ticketId: 14,
+    status: 'CANCELLED',
+    registrationTimestamp: '2026-11-14T09:10:00.000Z',
+  },
+  {
+    id: 'reg-seed-0004',
+    userId: MOCK_DEMO_USER_ID,
+    ticketId: 21,
+    status: 'ACTIVE',
+    registrationTimestamp: '2026-11-02T10:15:00.000Z',
+  },
+];
 
-function toTicketType(seed: MockTicketSeed): TicketType {
-  const sessionSold = mockRegistrations.filter((reg) => reg.ticketId === seed.id).length;
+let memoryRegistrations: EventRegistration[] = [...SEED_REGISTRATIONS];
+
+function isValidRegistration(item: unknown): item is EventRegistration {
+  if (!item || typeof item !== 'object') return false;
+  const r = item as Record<string, unknown>;
+  return (
+    typeof r.id === 'string' &&
+    typeof r.userId === 'string' &&
+    typeof r.ticketId === 'number' &&
+    (r.status === 'ACTIVE' || r.status === 'CANCELLED') &&
+    typeof r.registrationTimestamp === 'string'
+  );
+}
+
+function loadRegistrations(): EventRegistration[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw === null) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_REGISTRATIONS));
+      memoryRegistrations = [...SEED_REGISTRATIONS];
+      return memoryRegistrations;
+    }
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return memoryRegistrations;
+    memoryRegistrations = parsed.filter(isValidRegistration);
+    return memoryRegistrations;
+  } catch {
+    return memoryRegistrations;
+  }
+}
+
+function saveRegistrations(registrations: EventRegistration[]): void {
+  memoryRegistrations = registrations;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(registrations));
+  } catch {
+    // Fallback to in-memory storage when localStorage is unavailable
+  }
+}
+
+function toTicketType(seed: MockTicketSeed, registrations: EventRegistration[]): TicketType {
+  const sessionSold = registrations.filter(
+    (reg) => reg.ticketId === seed.id && reg.status === 'ACTIVE',
+  ).length;
   const remaining = Math.max(0, seed.limit - seed.initialSold - sessionSold);
   return {
     id: seed.id,
@@ -85,17 +160,85 @@ function toTicketType(seed: MockTicketSeed): TicketType {
   };
 }
 
+function toMyRegistration(reg: EventRegistration): MyRegistration | null {
+  const ticket = MOCK_TICKET_SEEDS.find((item) => item.id === reg.ticketId);
+  if (!ticket) return null;
+  const event = MOCK_EVENTS.find((item) => item.id === ticket.eventId);
+  if (!event) return null;
+
+  return {
+    id: reg.id,
+    event: {
+      id: String(event.id),
+      title: event.name,
+      startsAt: event.startTimestamp,
+      endsAt: event.endTimestamp,
+      status: event.status,
+    },
+    ticket: {
+      type: ticket.type,
+      price: ticket.price,
+    },
+    status: reg.status,
+    registeredAt: reg.registrationTimestamp,
+  };
+}
+
 export function getMockTicketsByEvent(eventId: number): TicketType[] {
-  return MOCK_TICKET_SEEDS.filter((seed) => seed.eventId === eventId).map(toTicketType);
+  const registrations = loadRegistrations();
+  return MOCK_TICKET_SEEDS.filter((seed) => seed.eventId === eventId).map((seed) =>
+    toTicketType(seed, registrations),
+  );
 }
 
 export function findMockTicket(eventId: number, ticketId: number): TicketType | null {
   const seed = MOCK_TICKET_SEEDS.find(
     (item) => item.eventId === eventId && item.id === ticketId,
   );
-  return seed ? toTicketType(seed) : null;
+  if (!seed) return null;
+  return toTicketType(seed, loadRegistrations());
 }
 
 export function appendMockRegistration(registration: EventRegistration): void {
-  mockRegistrations.push(registration);
+  const registrations = loadRegistrations();
+  saveRegistrations([...registrations, registration]);
+}
+
+export function getMockRegistrationsByUser(userId: string): MyRegistration[] {
+  return loadRegistrations()
+    .filter((reg) => reg.userId === userId)
+    .map(toMyRegistration)
+    .filter((item): item is MyRegistration => item !== null)
+    .sort(
+      (a, b) =>
+        Date.parse(a.event.startsAt) - Date.parse(b.event.startsAt) ||
+        Date.parse(a.registeredAt) - Date.parse(b.registeredAt),
+    );
+}
+
+export function findMockRegistrationById(id: string): EventRegistration | null {
+  return loadRegistrations().find((reg) => reg.id === id) ?? null;
+}
+
+export function isMockTicketEventFinished(ticketId: number): boolean {
+  const ticket = MOCK_TICKET_SEEDS.find((item) => item.id === ticketId);
+  if (!ticket) return false;
+  const event = MOCK_EVENTS.find((item) => item.id === ticket.eventId);
+  return event?.status === 'FINISHED';
+}
+
+export function cancelMockRegistration(id: string): MyRegistration | null {
+  const registrations = loadRegistrations();
+  const index = registrations.findIndex((reg) => reg.id === id);
+  if (index === -1) return null;
+
+  const updated: EventRegistration = {
+    ...registrations[index],
+    status: 'CANCELLED',
+  };
+  const next = registrations.slice();
+  next[index] = updated;
+  saveRegistrations(next);
+
+  return toMyRegistration(updated);
 }

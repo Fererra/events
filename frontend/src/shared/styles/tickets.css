@@ -144,6 +144,16 @@
   font-size: 0.84rem;
 }
 
+.registration-summary__link {
+  margin: 12px 0 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.registration-summary__link a {
+  color: var(--success);
+}
+
 @media (max-width: 480px) {
   .ticket-option {
     flex-wrap: wrap;
