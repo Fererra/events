@@ -1,0 +1,174 @@
+.ticket-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.ticket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ticket-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 14px;
+  border: 1px solid var(--blue-200);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.ticket-option:hover:not(.ticket-option--readonly) {
+  border-color: var(--blue-600);
+  background: var(--blue-50);
+}
+
+.ticket-option:focus-within {
+  outline: 3px solid var(--blue-600);
+  outline-offset: 2px;
+}
+
+.ticket-option--selected {
+  border-color: var(--blue-700);
+  background: var(--blue-50);
+  box-shadow: inset 0 0 0 1px var(--blue-700);
+}
+
+.ticket-option--sold-out {
+  background: #f8fafc;
+}
+
+.ticket-option--sold-out .ticket-option__name,
+.ticket-option--sold-out .ticket-option__price {
+  color: var(--muted);
+}
+
+.ticket-option--readonly {
+  cursor: default;
+}
+
+.ticket-option__radio {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--blue-700);
+  cursor: pointer;
+}
+
+.ticket-option__radio:focus-visible {
+  outline: none;
+}
+
+.ticket-option__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ticket-option__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.ticket-option__name {
+  font-weight: 600;
+  color: var(--blue-900);
+  overflow-wrap: break-word;
+}
+
+.ticket-option__meta {
+  margin: 2px 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.ticket-option__price {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--blue-900);
+  white-space: nowrap;
+}
+
+.ticket-actions {
+  margin-top: 16px;
+}
+
+.ticket-actions__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.ticket-submit {
+  min-height: 44px;
+}
+
+.ticket-actions__hint {
+  font-size: 0.9rem;
+}
+
+.ticket-notice {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--blue-50);
+  border: 1px solid var(--blue-200);
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+
+.registration-summary__details {
+  margin-top: 10px;
+  font-size: 0.92rem;
+}
+
+.registration-summary__details dt {
+  color: var(--success);
+  opacity: 0.85;
+}
+
+.registration-summary__id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.84rem;
+}
+
+@media (max-width: 480px) {
+  .ticket-option {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .ticket-option__radio {
+    margin-top: 3px;
+  }
+
+  .ticket-option__price {
+    margin-left: 30px;
+  }
+
+  .ticket-option--readonly .ticket-option__price {
+    margin-left: 0;
+  }
+
+  .ticket-actions__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ticket-submit {
+    width: 100%;
+    text-align: center;
+  }
+}
