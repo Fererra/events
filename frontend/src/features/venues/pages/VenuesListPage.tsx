@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
+import { MapPinIcon } from '../../../shared/components/Icons';
 import { Pagination, parsePageParam } from '../../../shared/components/Pagination';
 import type { PaginatedResponse } from '../../../shared/api/types';
 import { fetchEventCountsByVenue } from '../../events/api/events.api';
@@ -45,7 +46,10 @@ export function VenuesListPage() {
   return (
     <section>
       <div className="page-header">
-        <h1>Venues</h1>
+        <h1 className="page-header__title">
+          <MapPinIcon size={26} />
+          <span>Venues</span>
+        </h1>
         <p className="muted">Explore campus and partner locations hosting upcoming events.</p>
       </div>
 

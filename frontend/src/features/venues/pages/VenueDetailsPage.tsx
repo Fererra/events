@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ApiError } from '../../../shared/api/errors';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
-import { formatDate, formatDateRange } from '../../../shared/utils/format';
+import { formatDateRange } from '../../../shared/utils/format';
 import { fetchEventsByVenue } from '../../events/api/events.api';
 import { EventStatusBadge } from '../../events/components/EventStatusBadge';
 import type { EventItem } from '../../events/types';
@@ -64,8 +64,6 @@ export function VenueDetailsPage() {
                 <dd>{venue.address}</dd>
                 <dt>Capacity</dt>
                 <dd>{venue.capacity !== null ? `${venue.capacity} people` : 'Not specified'}</dd>
-                <dt>Added on</dt>
-                <dd>{formatDate(venue.createdAt)}</dd>
               </dl>
             </section>
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { PaginatedResponse } from '../../../shared/api/types';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
+import { ClockIcon, MapPinIcon, OrganizerIcon, TicketIcon } from '../../../shared/components/Icons';
 import { Pagination, parsePageParam } from '../../../shared/components/Pagination';
 import { formatDateRange } from '../../../shared/utils/format';
 import { fetchEvents } from '../api/events.api';
@@ -39,7 +40,10 @@ export function EventsListPage() {
   return (
     <section>
       <div className="page-header">
-        <h1>Events</h1>
+        <h1 className="page-header__title">
+          <TicketIcon size={26} />
+          <span>Events</span>
+        </h1>
         <p className="muted">Browse upcoming and past events across our venues.</p>
       </div>
 
@@ -65,13 +69,19 @@ export function EventsListPage() {
                   <EventStatusBadge status={event.status} />
                 </div>
 
-                <dl className="entity-card__meta">
+                <dl className="entity-card__meta entity-card__meta--icons">
                   <div>
-                    <dt>When</dt>
+                    <dt title="When">
+                      <ClockIcon size={16} />
+                      <span className="sr-only">When</span>
+                    </dt>
                     <dd>{formatDateRange(event.startTimestamp, event.endTimestamp)}</dd>
                   </div>
                   <div>
-                    <dt>Venue</dt>
+                    <dt title="Venue">
+                      <MapPinIcon size={16} />
+                      <span className="sr-only">Venue</span>
+                    </dt>
                     <dd>
                       {event.venue ? (
                         <>
@@ -84,8 +94,11 @@ export function EventsListPage() {
                     </dd>
                   </div>
                   <div>
-                    <dt>Organizer</dt>
-                    <dd>{event.organisator}</dd>
+                    <dt title="Organizer">
+                      <OrganizerIcon size={16} />
+                      <span className="sr-only">Organizer</span>
+                    </dt>
+                    <dd>by {event.organisator}</dd>
                   </div>
                 </dl>
 
