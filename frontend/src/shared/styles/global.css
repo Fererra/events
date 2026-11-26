@@ -69,6 +69,9 @@ svg {
   max-width: 420px;
   margin: 0 auto;
 }
+.narrow--wide {
+  max-width: 520px;
+}
 
 .header {
   position: sticky;
@@ -158,7 +161,6 @@ svg {
   }
 }
 
-/* buttons */
 .btn {
   display: inline-block;
   font: inherit;
@@ -189,7 +191,7 @@ svg {
 }
 
 .hero {
-  padding: 32px 0;
+  padding: 24px 0 8px;
   max-width: 640px;
 }
 .hero h1 {
@@ -198,13 +200,67 @@ svg {
 .lead {
   font-size: 1.1rem;
   color: var(--muted);
-  margin: 0 0 24px;
+  margin: 0 0 16px;
 }
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+
+.tiles {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 8px;
+  max-width: 760px;
 }
+@media (min-width: 560px) {
+  .tiles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.tile {
+  position: relative;
+  display: block;
+  aspect-ratio: 5 / 3;
+  overflow: hidden;
+  border-radius: 16px;
+  color: #fff;
+  text-decoration: none;
+  border: 1px solid var(--blue-200);
+  box-shadow: 0 6px 18px rgba(15, 47, 107, 0.14);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+.tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(15, 47, 107, 0.22);
+}
+.tile__art {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  display: block;
+}
+.tile::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to top, rgba(10, 34, 80, 0.8) 0%, rgba(10, 34, 80, 0) 55%);
+}
+.tile__label {
+  position: absolute;
+  left: 18px;
+  bottom: 14px;
+  z-index: 1;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
 .card {
   background: #fff;
   border: 1px solid var(--blue-200);
@@ -230,27 +286,63 @@ svg {
   flex-direction: column;
   gap: 16px;
 }
-.form label {
+.form p {
+  margin: 0;
+}
+.field {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+}
+.field label {
   font-weight: 600;
   font-size: 0.95rem;
 }
-.form input {
+.field__control {
+  position: relative;
+  display: flex;
+}
+.field input {
   font: inherit;
   font-size: 16px;
-  font-weight: 400;
   padding: 10px 12px;
   border: 1px solid var(--blue-200);
   border-radius: 10px;
   width: 100%;
+  background: #fff;
+  color: var(--text);
 }
-.form input[aria-invalid='true'] {
+.field input.field__input--toggle {
+  padding-right: 68px;
+}
+.field input[aria-invalid='true'] {
   border-color: var(--danger);
 }
-.form p {
+.field__toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--blue-700);
+  background: none;
+  border: 0;
+  border-radius: 0 10px 10px 0;
+  cursor: pointer;
+}
+.field__error {
   margin: 0;
+  font-size: 0.875rem;
+  color: var(--danger);
+}
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
 }
 
 .alert {

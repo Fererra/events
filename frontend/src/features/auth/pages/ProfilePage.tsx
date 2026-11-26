@@ -1,28 +1,26 @@
 import { useEffect, useState } from 'react';
-import { fetchMe } from '../api/auth';
-import { ErrorMessage } from '../components/ErrorMessage';
-import { useAuthStore, type User } from '../store/auth';
+import { fetchMe } from '../api/auth.api';
+import { useAuthStore, type User } from '../store/auth.store';
+import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 
-export function Profile() {
+export function ProfilePage() {
   const cached = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const [user, setLocal] = useState<User | null>(cached);
   const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
-    let active = true;
-    fetchMe()
+    const controller = new AbortController();
+    fetchMe(controller.signal)
       .then((u) => {
-        if (!active) return;
         setLocal(u);
         setUser(u);
       })
       .catch((e) => {
-        if (active) setError(e);
+        if (e instanceof DOMException && e.name === 'AbortError') return;
+        setError(e);
       });
-    return () => {
-      active = false;
-    };
+    return () => controller.abort();
   }, [setUser]);
 
   return (

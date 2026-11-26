@@ -1,4 +1,4 @@
-import { useAuthStore, type TokenPair } from '../store/auth';
+import { useAuthStore, type TokenPair } from '../../features/auth/store/auth.store';
 import { ApiError, toApiError } from './errors';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '/api';
@@ -43,18 +43,19 @@ async function send<T>(path: string, opts: RequestOptions, token: string | null)
 let refreshing: Promise<boolean> | null = null;
 
 async function refreshTokens(): Promise<boolean> {
-  const { refreshToken, setTokens, clear } = useAuthStore.getState();
-  if (!refreshToken) return false;
+  const usedRefresh = useAuthStore.getState().refreshToken;
+  if (!usedRefresh) return false;
   try {
     const pair = await send<TokenPair>(
       '/auth/refresh',
-      { method: 'POST', body: { refreshToken } },
+      { method: 'POST', body: { refreshToken: usedRefresh } },
       null,
     );
-    setTokens(pair);
+    if (useAuthStore.getState().refreshToken !== usedRefresh) return false;
+    useAuthStore.getState().setTokens(pair);
     return true;
   } catch (e) {
-    if (!(e instanceof ApiError && e.status === 0)) clear();
+    if (!(e instanceof ApiError && e.status === 0)) useAuthStore.getState().clear();
     return false;
   }
 }
