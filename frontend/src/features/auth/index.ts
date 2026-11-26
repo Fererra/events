@@ -1,7 +1,14 @@
 export { LoginPage } from './pages/LoginPage';
 export { RegisterPage } from './pages/RegisterPage';
 export { ProfilePage } from './pages/ProfilePage';
-export { login, register, logout, fetchMe, type RegisterInput } from './api/auth.api';
+export {
+  login,
+  register,
+  logout,
+  fetchMe,
+  USE_AUTH_MOCK,
+  type RegisterInput,
+} from './api/auth.api';
 export {
   useAuthStore,
   useIsAuthed,
