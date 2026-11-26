@@ -47,3 +47,12 @@ export function formatDateRange(startIso: string, endIso: string): string {
 
   return `${dateTimeFormatter.format(start)} – ${dateTimeFormatter.format(end)}`;
 }
+
+export function formatPrice(price: number): string {
+  if (price <= 0) return 'Free';
+  const formatter = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: Number.isInteger(price) ? 0 : 2,
+    maximumFractionDigits: 2,
+  });
+  return `${formatter.format(price)} UAH`;
+}

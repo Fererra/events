@@ -64,6 +64,11 @@
   padding-left: 18px;
   font-size: 0.9rem;
 }
+.alert--success {
+  background: var(--success-bg);
+  border-color: var(--success-border);
+  color: var(--success);
+}
 
 .badge {
   display: inline-flex;
@@ -94,6 +99,10 @@
 .badge--cancelled {
   background: var(--danger-bg);
   color: var(--danger);
+}
+.badge--warning {
+  background: var(--warning-bg);
+  color: var(--warning);
 }
 .badge--neutral {
   background: var(--blue-50);
