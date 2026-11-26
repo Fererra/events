@@ -1,9 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../../../shared/api/errors';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { formatDateTime, formatPrice } from '../../../shared/utils/format';
-import { useIsAuthed } from '../../auth';
+import { useIsAuthed } from '../../auth/store/auth.store';
 import type { EventStatus } from '../../events';
 import { fetchEventTickets, registerForEvent } from '../api/registrations.api';
 import type { EventRegistration, TicketType } from '../types';
@@ -171,6 +171,9 @@ export function EventRegistrationPanel({ eventId, eventStatus }: Props) {
                 <dt>Confirmation ID</dt>
                 <dd className="registration-summary__id">{lastRegistration.registration.id}</dd>
               </dl>
+              <p className="registration-summary__link">
+                <Link to="/profile">View in my registrations</Link>
+              </p>
             </div>
           )}
 
