@@ -6,6 +6,7 @@ import { formatDateTime } from '../../../shared/utils/format';
 import { fetchEventById } from '../api/events.api';
 import { EventStatusBadge } from '../components/EventStatusBadge';
 import type { EventWithVenue } from '../types';
+import { EventRegistrationPanel } from '../../registrations';
 
 export function EventDetailsPage() {
   const { id } = useParams();
@@ -57,6 +58,8 @@ export function EventDetailsPage() {
                 <h2>About this event</h2>
                 <p className="detail-description">{event.description}</p>
               </section>
+
+              <EventRegistrationPanel eventId={event.id} eventStatus={event.status} />
 
               <section className="card detail-section">
                 <h2>Schedule &amp; organizer</h2>
