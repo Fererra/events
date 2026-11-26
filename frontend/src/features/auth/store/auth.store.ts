@@ -6,6 +6,9 @@ export type Role = 'user' | 'admin';
 export interface User {
   id: string;
   email: string;
+  surname?: string;
+  name?: string;
+  phone?: string;
   role: Role;
   createdAt: string;
 }
