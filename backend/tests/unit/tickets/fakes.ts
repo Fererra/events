@@ -15,6 +15,11 @@ export class InMemoryTicketTypeRepository implements ITicketTypeRepository {
     return this.items.find((t) => t.id === id) ?? null;
   }
 
+  async findByIds(ids: readonly string[]) {
+    const idSet = new Set(ids);
+    return this.items.filter((t) => idSet.has(t.id));
+  }
+
   async listByEvent(eventId: string) {
     return this.items
       .filter((t) => t.eventId === eventId)

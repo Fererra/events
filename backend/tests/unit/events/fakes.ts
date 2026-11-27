@@ -35,6 +35,13 @@ export class InMemoryEventRepository implements IEventRepository {
     return found ? clone(found) : null;
   }
 
+  async findByIds(ids: readonly string[]) {
+    return ids
+      .map((id) => this.byId.get(id))
+      .filter((e): e is Event => e !== undefined)
+      .map(clone);
+  }
+
   async findByIdForUpdate(id: string) {
     return this.findById(id);
   }

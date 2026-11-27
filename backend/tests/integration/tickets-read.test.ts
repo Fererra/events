@@ -95,7 +95,7 @@ describe('GET /events/:id/tickets and TicketReader', () => {
     ]);
   });
 
-  it('default stub soldCounter reports full limit as remaining', async () => {
+  it('default soldCounter reports full limit when no registrations exist', async () => {
     const plain = await createTestApp(ADMIN);
     await plain.app.ready();
     const { accessToken } = await login(plain.app, ADMIN.ADMIN_EMAIL, ADMIN.ADMIN_PASSWORD);
