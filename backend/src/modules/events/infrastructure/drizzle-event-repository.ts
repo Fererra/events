@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, gte, lte, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, inArray, lte, type SQL } from 'drizzle-orm';
 import type { DbExecutorProvider } from '../../../shared/infrastructure/db/database.js';
 import { Event } from '../domain/event.js';
 import { EventPeriod } from '../domain/event-period.js';
@@ -69,6 +69,16 @@ export class DrizzleEventRepository implements IEventRepository {
       .where(where)
       .orderBy(desc(events.startsAt), asc(events.id));
     return rows.map(toDomain);
+  }
+
+  async hasScheduledForVenue(venueId: string): Promise<boolean> {
+    const [row] = await this.db
+      .executor()
+      .select({ id: events.id })
+      .from(events)
+      .where(and(eq(events.venueId, venueId), inArray(events.status, ['IN_PLANNING', 'ACTIVE'])))
+      .limit(1);
+    return row !== undefined;
   }
 
   async add(event: Event): Promise<void> {

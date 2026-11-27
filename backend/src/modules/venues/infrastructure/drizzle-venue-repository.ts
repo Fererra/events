@@ -85,4 +85,8 @@ export class DrizzleVenueRepository implements IVenueRepository {
       throw err;
     }
   }
+
+  async delete(id: string): Promise<void> {
+    await this.db.executor().delete(venues).where(eq(venues.id, id));
+  }
 }

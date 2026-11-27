@@ -8,7 +8,7 @@ import type { DbExecutorProvider } from '../../shared/infrastructure/db/database
 import type { AppModule } from '../../shared/module.js';
 import { DrizzleVenueRepository } from './infrastructure/drizzle-venue-repository.js';
 import { registerVenuesRoutes } from './presentation/venues.routes.js';
-import { createVenuesContainer } from './venues.container.js';
+import { createVenuesContainer, type VenuesModuleOverrides } from './venues.container.js';
 
 export type { VenueDto } from './application/venue-dto.js';
 export type { PaginatedVenuesDto } from './application/queries/list-venues.js';
@@ -42,11 +42,11 @@ export function createVenueReader(db: DbExecutorProvider): VenueReader {
   };
 }
 
-export function createVenuesModule(): AppModule {
+export function createVenuesModule(overrides: VenuesModuleOverrides = {}): AppModule {
   return {
     name: 'venues',
     register(app, ctx) {
-      const container = createVenuesContainer(ctx);
+      const container = createVenuesContainer(ctx, overrides);
       registerVenuesRoutes(app, container);
     },
   };

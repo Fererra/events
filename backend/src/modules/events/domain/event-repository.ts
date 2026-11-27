@@ -24,6 +24,7 @@ export interface IEventRepository extends IEventLifecycleRepository {
   findById(id: string): Promise<Event | null>;
   list(filter: EventListFilter): Promise<EventPage>;
   listForCatalog(filter: EventCatalogRangeFilter): Promise<Event[]>;
+  hasScheduledForVenue(venueId: string): Promise<boolean>;
   add(event: Event): Promise<void>;
   save(event: Event): Promise<void>;
   findActiveEndedBefore(now: Date): Promise<Event[]>;

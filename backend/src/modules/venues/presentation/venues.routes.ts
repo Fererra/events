@@ -48,4 +48,13 @@ export function registerVenuesRoutes(app: FastifyInstance, venues: VenuesContain
     },
     async (request) => venues.updateVenue.execute({ id: request.params.id, ...request.body }),
   );
+
+  app.delete<{ Params: VenueIdParams }>(
+    '/venues/:id',
+    { preHandler: venues.guards.requireAdmin, schema: { params: venueIdParams } },
+    async (request, reply) => {
+      await venues.deleteVenue.execute(request.params.id);
+      return reply.code(204).send();
+    },
+  );
 }

@@ -14,4 +14,5 @@ export interface IVenueRepository {
   add(venue: Venue): Promise<void>;
   /** Persists edits to an existing venue. Throws VenueAddressAlreadyTakenError on duplicate address. */
   save(venue: Venue): Promise<void>;
+  delete(id: string): Promise<void>;
 }

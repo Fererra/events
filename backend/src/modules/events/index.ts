@@ -58,6 +58,18 @@ export function createEventCatalogReader(db: DbExecutorProvider): EventCatalogRe
   };
 }
 
+export interface VenueEventsChecker {
+  hasScheduledEvents(venueId: string): Promise<boolean>;
+}
+
+/** Public cross-module check used by Venues before deleting a venue (ES-16). */
+export function createVenueEventsChecker(db: DbExecutorProvider): VenueEventsChecker {
+  const repo = new DrizzleEventRepository(db);
+  return {
+    hasScheduledEvents: (venueId: string) => repo.hasScheduledForVenue(venueId),
+  };
+}
+
 /** Factory so tests can supply custom adapters when needed. */
 export function createEventsModule(overrides: EventsModuleOverrides = {}): AppModule {
   return {
