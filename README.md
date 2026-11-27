@@ -23,10 +23,11 @@ TypeScript · Fastify · Drizzle ORM · PostgreSQL · JWT + Argon2 · node-cron 
 | GET | `/health`, `/health/db` | всі | ES-01, ES-03 |
 | POST | `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout` | гість | ES-07…ES-10 |
 | GET | `/me` | `user` / `admin` | ES-12 |
+| POST | `/venues` | `admin` | ES-13 |
 | GET | `/me/registrations` | `user` / `admin` | ES-26 |
 | GET | `/analytics/events?from&to&status` | `admin` | ES-28 |
 
-Детальніше: [docs/api-auth.md](docs/api-auth.md), [docs/api-analytics.md](docs/api-analytics.md), формат помилок — [docs/api-errors.md](docs/api-errors.md).
+Детальніше: [docs/api-auth.md](docs/api-auth.md), [docs/api-venues.md](docs/api-venues.md), [docs/api-analytics.md](docs/api-analytics.md), формат помилок — [docs/api-errors.md](docs/api-errors.md).
 
 ## Тимчасові заглушки (порти, що чекають на інші модулі)
 
@@ -100,7 +101,7 @@ npm test
 npm run test:coverage   # звіт у терміналі + backend/coverage/index.html
 ```
 
-Поточний стан: **106 тестів**, покриття **97.4%** рядків / **92.9%** гілок.
+Поточний стан: **123 тести**, покриття **97.5%** рядків / **93.3%** гілок.
 
 CI (GitHub Actions, `.github/workflows/ci.yml`) на кожен PR і push у `main`:
 - **backend** — Prettier, ESLint (з межами модулів), typecheck, тести з покриттям (поріг 90% рядків / 85% гілок), збірка; звіт покриття — артефакт `coverage-report`;
