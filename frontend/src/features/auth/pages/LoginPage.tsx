@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { login, USE_AUTH_MOCK } from '../api/auth.api';
-import { MOCK_DEMO_CREDENTIALS } from '../api/auth.mock';
+import { MOCK_DEMO_ADMIN_CREDENTIALS, MOCK_DEMO_CREDENTIALS } from '../api/auth.mock';
 import { fieldErrors } from '../../../shared/api/errors';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { TextField } from '../../../shared/components/TextField';
@@ -38,12 +38,12 @@ export function LoginPage() {
     }
   });
 
-  const onDemoLogin = async () => {
+  const onDemoLogin = async (email: string, password: string) => {
     if (busy) return;
     setBusy(true);
     setError(null);
     try {
-      await login(MOCK_DEMO_CREDENTIALS.email, MOCK_DEMO_CREDENTIALS.password);
+      await login(email, password);
       navigate(from, { replace: true });
     } catch (e) {
       setError(e);
@@ -83,20 +83,50 @@ export function LoginPage() {
       </form>
       {USE_AUTH_MOCK && (
         <div className="card demo-box">
-          <p className="demo-box__title">Demo account (mock mode)</p>
-          <p className="demo-box__creds muted">
-            Email: <code>{MOCK_DEMO_CREDENTIALS.email}</code>
-            <br />
-            Password: <code>{MOCK_DEMO_CREDENTIALS.password}</code>
-          </p>
-          <button
-            type="button"
-            className="btn btn--ghost"
-            disabled={busy}
-            onClick={onDemoLogin}
-          >
-            Sign in as demo user
-          </button>
+          <p className="demo-box__title">Demo accounts (mock mode)</p>
+          <div className="demo-box__accounts">
+            <div className="demo-box__item">
+              <p className="demo-box__creds muted">
+                <strong>User</strong>
+                <br />
+                Email: <code>{MOCK_DEMO_CREDENTIALS.email}</code>
+                <br />
+                Password: <code>{MOCK_DEMO_CREDENTIALS.password}</code>
+              </p>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                disabled={busy}
+                onClick={() =>
+                  onDemoLogin(MOCK_DEMO_CREDENTIALS.email, MOCK_DEMO_CREDENTIALS.password)
+                }
+              >
+                Sign in as demo user
+              </button>
+            </div>
+            <div className="demo-box__item">
+              <p className="demo-box__creds muted">
+                <strong>Administrator</strong>
+                <br />
+                Email: <code>{MOCK_DEMO_ADMIN_CREDENTIALS.email}</code>
+                <br />
+                Password: <code>{MOCK_DEMO_ADMIN_CREDENTIALS.password}</code>
+              </p>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                disabled={busy}
+                onClick={() =>
+                  onDemoLogin(
+                    MOCK_DEMO_ADMIN_CREDENTIALS.email,
+                    MOCK_DEMO_ADMIN_CREDENTIALS.password,
+                  )
+                }
+              >
+                Sign in as demo admin
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </section>
