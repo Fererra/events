@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { logout, useAuthStore, useIsAuthed, useRole } from '../features/auth';
+import { getUserDisplayName, logout, useAuthStore, useIsAuthed, useRole } from '../features/auth';
 import { ConfirmDialog } from '../shared/components/ConfirmDialog';
-import { MapPinIcon, OrganizerIcon, ShieldIcon, TicketIcon } from '../shared/components/Icons';
+import {
+  AnalyticsIcon,
+  MapPinIcon,
+  OrganizerIcon,
+  ShieldIcon,
+  TicketIcon,
+} from '../shared/components/Icons';
 
 function Logo() {
   return (
@@ -23,9 +29,7 @@ export function Layout() {
   const navigate = useNavigate();
   const authed = useIsAuthed();
   const role = useRole();
-  const profileTitle = useAuthStore(
-    (s) => [s.user?.name, s.user?.surname].filter(Boolean).join(' ') || s.user?.email,
-  );
+  const profileTitle = useAuthStore((s) => (s.user ? getUserDisplayName(s.user) : undefined));
 
   useEffect(() => setOpen(false), [pathname]);
 
@@ -76,10 +80,16 @@ export function Layout() {
               <span>Venues</span>
             </NavLink>
             {role === 'admin' && (
-              <NavLink to="/admin">
-                <ShieldIcon size={17} />
-                <span>Admin</span>
-              </NavLink>
+              <>
+                <NavLink to="/admin">
+                  <ShieldIcon size={17} />
+                  <span>Admin</span>
+                </NavLink>
+                <NavLink to="/analytics">
+                  <AnalyticsIcon size={17} />
+                  <span>Analytics</span>
+                </NavLink>
+              </>
             )}
             <span className="nav__spacer" />
             {authed ? (

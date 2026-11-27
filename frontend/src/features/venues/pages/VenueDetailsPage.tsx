@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ApiError } from '../../../shared/api/errors';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
-import { formatDateRange } from '../../../shared/utils/format';
-import { fetchEventsByVenue } from '../../events/api/events.api';
-import { EventStatusBadge } from '../../events/components/EventStatusBadge';
-import type { EventItem } from '../../events/types';
+import { formatCapacity, formatDateRange } from '../../../shared/utils/format';
+import { EventStatusBadge, fetchEventsByVenue, type EventItem } from '../../events';
 import { fetchVenueById } from '../api/venues.api';
 import type { Venue } from '../types';
 
@@ -63,7 +61,7 @@ export function VenueDetailsPage() {
                 <dt>Address</dt>
                 <dd>{venue.address}</dd>
                 <dt>Capacity</dt>
-                <dd>{venue.capacity !== null ? `${venue.capacity} people` : 'Not specified'}</dd>
+                <dd>{formatCapacity(venue.capacity)}</dd>
               </dl>
             </section>
 

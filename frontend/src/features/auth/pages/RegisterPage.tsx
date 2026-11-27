@@ -15,7 +15,8 @@ import {
 
 export function RegisterPage() {
   const navigate = useNavigate();
-  const from = (useLocation().state as { from?: string } | null)?.from ?? '/events';
+  const redirectFrom = (useLocation().state as { from?: string } | null)?.from;
+  const from = redirectFrom ?? '/events';
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const serverFields = fieldErrors(error);
@@ -99,7 +100,7 @@ export function RegisterPage() {
         </button>
         <p className="muted">
           Already have an account?{' '}
-          <Link to="/login" state={{ from }}>
+          <Link to="/login" state={redirectFrom ? { from: redirectFrom } : undefined}>
             Sign in
           </Link>
         </p>

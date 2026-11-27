@@ -14,4 +14,15 @@ export {
   updateEvent,
   updateEventStatus,
 } from './api/events.api';
-export type { EventItem, EventWithVenue, EventStatus, EventInput } from './types';
+export {
+  EVENT_STATUS_LABELS,
+  EVENT_FILTER_TABS,
+  isEventStatus,
+  parseEventStatusFilter,
+  isTerminalEventStatus,
+  type EventItem,
+  type EventWithVenue,
+  type EventStatus,
+  type EventFilter,
+  type EventInput,
+} from './types';

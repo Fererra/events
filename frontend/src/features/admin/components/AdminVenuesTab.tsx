@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
+import { formatCapacity } from '../../../shared/utils/format';
 import { fetchScheduledEventCountsByVenue } from '../../events';
 import { deleteVenue, fetchAllVenues, type Venue } from '../../venues';
 import { VenueFormModal } from './VenueFormModal';
@@ -158,9 +159,7 @@ export function AdminVenuesTab({ onDataChanged }: AdminVenuesTabProps) {
                   </div>
                   <div>
                     <dt>Capacity</dt>
-                    <dd>
-                      {venue.capacity !== null ? `${venue.capacity} people` : 'Not specified'}
-                    </dd>
+                    <dd>{formatCapacity(venue.capacity)}</dd>
                   </div>
                 </dl>
 

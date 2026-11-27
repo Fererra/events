@@ -1,5 +1,6 @@
-import { useEffect, useId, useRef } from 'react';
+import { useId, useRef } from 'react';
 import { ErrorMessage } from './ErrorMessage';
+import { Modal } from './Modal';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -30,77 +31,43 @@ export function ConfirmDialog({
   const descriptionId = useId();
   const cancelRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-
-    const previousFocused =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    cancelRef.current?.focus();
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !busy) {
-        onCancel();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener('keydown', handleKeyDown);
-      previousFocused?.focus();
-    };
-  }, [open, busy, onCancel]);
-
-  if (!open) return null;
-
   return (
-    <div
-      className="dialog-backdrop"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !busy) {
-          onCancel();
-        }
-      }}
+    <Modal
+      open={open}
+      titleId={titleId}
+      describedById={descriptionId}
+      busy={busy}
+      initialFocusRef={cancelRef}
+      onClose={onCancel}
     >
-      <div
-        className="card dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={descriptionId}
-      >
-        <h2 id={titleId} className="dialog__title">
-          {title}
-        </h2>
-        <p id={descriptionId} className="dialog__desc">
-          {description}
-        </p>
+      <h2 id={titleId} className="dialog__title">
+        {title}
+      </h2>
+      <p id={descriptionId} className="dialog__desc">
+        {description}
+      </p>
 
-        <ErrorMessage error={error} />
+      <ErrorMessage error={error} />
 
-        <div className="dialog__actions">
-          <button
-            ref={cancelRef}
-            type="button"
-            className="btn btn--ghost"
-            disabled={busy}
-            onClick={onCancel}
-          >
-            {cancelLabel}
-          </button>
-          <button
-            type="button"
-            className={confirmVariant === 'danger' ? 'btn btn--danger' : 'btn'}
-            disabled={busy}
-            onClick={onConfirm}
-          >
-            {confirmLabel}
-          </button>
-        </div>
+      <div className="dialog__actions">
+        <button
+          ref={cancelRef}
+          type="button"
+          className="btn btn--ghost"
+          disabled={busy}
+          onClick={onCancel}
+        >
+          {cancelLabel}
+        </button>
+        <button
+          type="button"
+          className={confirmVariant === 'danger' ? 'btn btn--danger' : 'btn'}
+          disabled={busy}
+          onClick={onConfirm}
+        >
+          {confirmLabel}
+        </button>
       </div>
-    </div>
+    </Modal>
   );
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ApiError } from '../../../shared/api/errors';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
-import { formatDateTime } from '../../../shared/utils/format';
+import { formatCapacity, formatDateTime } from '../../../shared/utils/format';
 import { fetchEventById } from '../api/events.api';
 import { EventStatusBadge } from '../components/EventStatusBadge';
 import type { EventWithVenue } from '../types';
@@ -91,11 +91,7 @@ export function EventDetailsPage() {
                       <dt>Address</dt>
                       <dd>{event.venue.address}</dd>
                       <dt>Capacity</dt>
-                      <dd>
-                        {event.venue.capacity !== null
-                          ? `${event.venue.capacity} people`
-                          : 'Not specified'}
-                      </dd>
+                      <dd>{formatCapacity(event.venue.capacity)}</dd>
                     </dl>
                     <div className="detail-actions">
                       <Link to={`/venues/${event.venue.id}`} className="btn">

@@ -1,8 +1,16 @@
 import { ApiError } from '../../../shared/api/errors';
+import { assertNotAborted, paginate } from '../../../shared/api/mock-helpers';
 import type { PaginatedResponse } from '../../../shared/api/types';
-import { useAuthStore, type User } from '../../auth/store/auth.store';
-import { getMockVenueById } from '../../venues/api/venues.api';
-import type { EventInput, EventItem, EventStatus, EventWithVenue } from '../types';
+import { recordMockEventActivity } from '../../analytics/api/analytics.mock';
+import { requireAdminUser } from '../../auth/store/auth.store';
+import { findMockVenueById } from '../../venues/api/venues.mock';
+import {
+  isTerminalEventStatus,
+  type EventInput,
+  type EventItem,
+  type EventStatus,
+  type EventWithVenue,
+} from '../types';
 import {
   findMockEventById,
   getScheduledEventCountsByVenue,
@@ -23,27 +31,10 @@ export const ALLOWED_STATUS_TRANSITIONS: Record<EventStatus, EventStatus[]> = {
   CANCELLED: [],
 };
 
-function assertNotAborted(signal?: AbortSignal) {
-  if (signal?.aborted) {
-    throw new DOMException('Aborted', 'AbortError');
-  }
-}
-
-function requireAdmin(): User {
-  const { user, refreshToken } = useAuthStore.getState();
-  if (!user || !refreshToken) {
-    throw new ApiError(401, 'UNAUTHORIZED', 'Please sign in to continue');
-  }
-  if (user.role !== 'admin') {
-    throw new ApiError(403, 'FORBIDDEN', 'Admin role is required');
-  }
-  return user;
-}
-
 function withVenue(event: EventItem): EventWithVenue {
   return {
     ...event,
-    venue: getMockVenueById(event.venueId),
+    venue: findMockVenueById(event.venueId),
   };
 }
 
@@ -110,7 +101,7 @@ function validateEventInput(input: Omit<EventInput, 'status'>): {
     );
   }
 
-  if (!getMockVenueById(venueId)) {
+  if (!findMockVenueById(venueId)) {
     throw new ApiError(404, 'VENUE_NOT_FOUND', 'Selected venue not found');
   }
 
@@ -133,18 +124,11 @@ export async function fetchEvents(
 
   const allEvents = loadMockEvents();
   const events = status ? allEvents.filter((event) => event.status === status) : allEvents;
-  const safeLimit = Math.max(1, Math.floor(limit));
-  const total = events.length;
-  const totalPages = Math.max(1, Math.ceil(total / safeLimit));
-  const safePage = Math.min(Math.max(1, Math.floor(page)), totalPages);
-  const start = (safePage - 1) * safeLimit;
+  const paginated = paginate(events, page, limit);
 
   return {
-    items: events.slice(start, start + safeLimit).map(withVenue),
-    page: safePage,
-    limit: safeLimit,
-    total,
-    totalPages,
+    ...paginated,
+    items: paginated.items.map(withVenue),
   };
 }
 
@@ -221,7 +205,7 @@ export async function createEvent(
   signal?: AbortSignal,
 ): Promise<EventWithVenue> {
   assertNotAborted(signal);
-  const admin = requireAdmin();
+  const admin = requireAdminUser();
 
   const normalized = validateEventInput(input);
   const status: EventStatus = input.status ?? 'IN_PLANNING';
@@ -258,7 +242,7 @@ export async function updateEvent(
   signal?: AbortSignal,
 ): Promise<EventWithVenue> {
   assertNotAborted(signal);
-  requireAdmin();
+  requireAdminUser();
 
   const events = loadMockEvents();
   const index = events.findIndex((item) => item.id === id);
@@ -267,7 +251,7 @@ export async function updateEvent(
   }
 
   const existing = events[index];
-  if (existing.status === 'FINISHED' || existing.status === 'CANCELLED') {
+  if (isTerminalEventStatus(existing.status)) {
     throw new ApiError(
       409,
       'EVENT_NOT_EDITABLE',
@@ -298,7 +282,7 @@ export async function updateEventStatus(
   signal?: AbortSignal,
 ): Promise<EventWithVenue> {
   assertNotAborted(signal);
-  requireAdmin();
+  requireAdminUser();
 
   const events = loadMockEvents();
   const index = events.findIndex((item) => item.id === id);
@@ -327,5 +311,8 @@ export async function updateEventStatus(
   const next = events.slice();
   next[index] = updated;
   saveMockEvents(next);
+  if (nextStatus === 'CANCELLED') {
+    recordMockEventActivity(id);
+  }
   return withVenue(updated);
 }

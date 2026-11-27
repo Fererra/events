@@ -1,5 +1,8 @@
 import { ApiError } from '../../../shared/api/errors';
-import { useAuthStore } from '../../auth/store/auth.store';
+import { assertNotAborted, generateId } from '../../../shared/api/mock-helpers';
+import { recordMockEventActivity } from '../../analytics/api/analytics.mock';
+import { requireAdminUser, requireAuthUser } from '../../auth/store/auth.store';
+import { isTerminalEventStatus } from '../../events';
 import { findMockEventById } from '../../events/api/events.mock';
 import type {
   AdminRegistration,
@@ -24,33 +27,6 @@ import {
   hasMockTicketTypeName,
   isMockTicketEventFinished,
 } from './registrations.mock';
-
-function assertNotAborted(signal?: AbortSignal) {
-  if (signal?.aborted) {
-    throw new DOMException('Aborted', 'AbortError');
-  }
-}
-
-function generateUuid(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = Math.floor(Math.random() * 16);
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
-function requireAdmin(): void {
-  const { user, refreshToken } = useAuthStore.getState();
-  if (!user || !refreshToken) {
-    throw new ApiError(401, 'UNAUTHORIZED', 'Please sign in to continue');
-  }
-  if (user.role !== 'admin') {
-    throw new ApiError(403, 'FORBIDDEN', 'Admin role is required');
-  }
-}
 
 // Mock implementation until backend ticket and registration endpoints
 // (GET /events/:id/tickets, POST /events/:id/registrations,
@@ -79,11 +55,7 @@ export async function registerForEvent(
   signal?: AbortSignal,
 ): Promise<EventRegistration> {
   assertNotAborted(signal);
-
-  const { user, refreshToken } = useAuthStore.getState();
-  if (!user || !refreshToken) {
-    throw new ApiError(401, 'UNAUTHORIZED', 'Please sign in to register');
-  }
+  const user = requireAuthUser('Please sign in to register');
 
   if (!Number.isInteger(eventId) || eventId <= 0) {
     throw new ApiError(404, 'EVENT_NOT_FOUND', 'Event not found');
@@ -112,7 +84,7 @@ export async function registerForEvent(
   }
 
   const registration: EventRegistration = {
-    id: generateUuid(),
+    id: generateId(),
     userId: user.id,
     ticketId: ticket.id,
     status: 'ACTIVE',
@@ -120,17 +92,13 @@ export async function registerForEvent(
   };
 
   appendMockRegistration(registration);
+  recordMockEventActivity(eventId, registration.registrationTimestamp);
   return registration;
 }
 
 export async function fetchMyRegistrations(signal?: AbortSignal): Promise<MyRegistration[]> {
   assertNotAborted(signal);
-
-  const { user, refreshToken } = useAuthStore.getState();
-  if (!user || !refreshToken) {
-    throw new ApiError(401, 'UNAUTHORIZED', 'Please sign in to view your registrations');
-  }
-
+  const user = requireAuthUser('Please sign in to view your registrations');
   return getMockRegistrationsByUser(user.id);
 }
 
@@ -139,11 +107,7 @@ export async function cancelRegistration(
   signal?: AbortSignal,
 ): Promise<MyRegistration> {
   assertNotAborted(signal);
-
-  const { user, refreshToken } = useAuthStore.getState();
-  if (!user || !refreshToken) {
-    throw new ApiError(401, 'UNAUTHORIZED', 'Please sign in to cancel a registration');
-  }
+  const user = requireAuthUser('Please sign in to cancel a registration');
 
   const existing = findMockRegistrationById(registrationId);
   if (!existing) {
@@ -171,6 +135,7 @@ export async function cancelRegistration(
     throw new ApiError(404, 'REGISTRATION_NOT_FOUND', 'Registration not found');
   }
 
+  recordMockEventActivity(Number(updated.event.id));
   return updated;
 }
 
@@ -180,14 +145,14 @@ export async function createEventTicket(
   signal?: AbortSignal,
 ): Promise<TicketType> {
   assertNotAborted(signal);
-  requireAdmin();
+  requireAdminUser();
 
   const event = findMockEventById(eventId);
   if (!event) {
     throw new ApiError(404, 'EVENT_NOT_FOUND', 'Event not found');
   }
 
-  if (event.status === 'FINISHED' || event.status === 'CANCELLED') {
+  if (isTerminalEventStatus(event.status)) {
     throw new ApiError(
       409,
       'EVENT_NOT_EDITABLE',
@@ -235,7 +200,7 @@ export async function deleteEventTicket(
   signal?: AbortSignal,
 ): Promise<void> {
   assertNotAborted(signal);
-  requireAdmin();
+  requireAdminUser();
 
   const ticket = findMockTicket(eventId, ticketId);
   if (!ticket) {
@@ -257,7 +222,7 @@ export async function fetchAllRegistrations(
   signal?: AbortSignal,
 ): Promise<AdminRegistration[]> {
   assertNotAborted(signal);
-  requireAdmin();
+  requireAdminUser();
   return getAllMockRegistrations();
 }
 

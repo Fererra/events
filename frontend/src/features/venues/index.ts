@@ -4,7 +4,6 @@ export {
   fetchVenues,
   fetchAllVenues,
   fetchVenueById,
-  getMockVenueById,
   createVenue,
   updateVenue,
   deleteVenue,

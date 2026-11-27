@@ -5,9 +5,13 @@ import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { formatDateRange } from '../../../shared/utils/format';
 import {
   ALLOWED_STATUS_TRANSITIONS,
+  EVENT_FILTER_TABS,
+  EVENT_STATUS_LABELS,
   EventStatusBadge,
   fetchAllEvents,
+  isTerminalEventStatus,
   updateEventStatus,
+  type EventFilter,
   type EventStatus,
   type EventWithVenue,
 } from '../../events';
@@ -16,17 +20,135 @@ import { fetchAllVenues, type Venue } from '../../venues';
 import { EventFormModal } from './EventFormModal';
 import { EventTicketsModal } from './EventTicketsModal';
 
-type EventFilter = 'ALL' | EventStatus;
-
-const STATUS_LABELS: Record<EventStatus, string> = {
-  IN_PLANNING: 'In planning',
-  ACTIVE: 'Active',
-  FINISHED: 'Finished',
-  CANCELLED: 'Cancelled',
-};
-
 interface AdminEventsTabProps {
   onDataChanged?: () => void;
+}
+
+function getStatusChangeDescription(event: EventWithVenue, nextStatus: EventStatus): string {
+  const base = `Change status of "${event.name}" from ${EVENT_STATUS_LABELS[event.status]} to ${EVENT_STATUS_LABELS[nextStatus]}?`;
+  if (nextStatus === 'CANCELLED') {
+    return `${base} Registration will be closed and this change cannot be undone.`;
+  }
+  if (nextStatus === 'FINISHED') {
+    return `${base} Registration will be closed and the event can no longer be edited.`;
+  }
+  return base;
+}
+
+interface AdminEventCardProps {
+  event: EventWithVenue;
+  summary: EventTicketSummary | undefined;
+  selectedStatus: EventStatus;
+  updatingThisStatus: boolean;
+  updatingStatus: boolean;
+  onDraftStatusChange: (nextStatus: EventStatus) => void;
+  onConfirmStatusOpen: () => void;
+  onEditTickets: () => void;
+  onEditEvent: () => void;
+}
+
+function AdminEventCard({
+  event,
+  summary,
+  selectedStatus,
+  updatingThisStatus,
+  updatingStatus,
+  onDraftStatusChange,
+  onConfirmStatusOpen,
+  onEditTickets,
+  onEditEvent,
+}: AdminEventCardProps) {
+  const allowedNext = ALLOWED_STATUS_TRANSITIONS[event.status];
+  const isTerminal = isTerminalEventStatus(event.status);
+  const statusOptions: EventStatus[] = [event.status, ...allowedNext];
+
+  return (
+    <article className="card admin-item">
+      <div className="admin-item__head">
+        <h2 className="admin-item__title">
+          <Link to={`/events/${event.id}`}>{event.name}</Link>
+        </h2>
+        <EventStatusBadge status={event.status} />
+      </div>
+
+      <dl className="admin-item__meta">
+        <div>
+          <dt>Schedule</dt>
+          <dd>{formatDateRange(event.startTimestamp, event.endTimestamp)}</dd>
+        </div>
+        <div>
+          <dt>Venue</dt>
+          <dd>
+            {event.venue ? `${event.venue.name} · ${event.venue.address}` : 'Venue unavailable'}
+          </dd>
+        </div>
+        <div>
+          <dt>Organizer</dt>
+          <dd>{event.organisator}</dd>
+        </div>
+        <div>
+          <dt>Tickets</dt>
+          <dd>
+            {summary
+              ? `${summary.typesCount} ${summary.typesCount === 1 ? 'type' : 'types'} · ${summary.totalRemaining} / ${summary.totalLimit} left`
+              : 'No ticket types configured'}
+          </dd>
+        </div>
+      </dl>
+
+      <div className="admin-item__footer">
+        {allowedNext.length > 0 ? (
+          <div className="admin-status-control">
+            <label htmlFor={`event-status-${event.id}`} className="admin-status-control__label">
+              Status
+            </label>
+            <select
+              id={`event-status-${event.id}`}
+              className="filter-select"
+              value={selectedStatus}
+              disabled={updatingThisStatus}
+              onChange={(e) => onDraftStatusChange(e.target.value as EventStatus)}
+            >
+              {statusOptions.map((st) => (
+                <option key={st} value={st}>
+                  {EVENT_STATUS_LABELS[st]}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="btn btn--sm"
+              disabled={selectedStatus === event.status || updatingStatus}
+              onClick={onConfirmStatusOpen}
+            >
+              Update status
+            </button>
+          </div>
+        ) : (
+          <span className="muted">Final status ({EVENT_STATUS_LABELS[event.status]})</span>
+        )}
+
+        <div className="admin-item__actions">
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onEditTickets}>
+            Edit tickets ({summary?.typesCount ?? 0})
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            disabled={isTerminal}
+            onClick={onEditEvent}
+            title={
+              isTerminal
+                ? 'Finished or cancelled events cannot be edited'
+                : 'Edit event details'
+            }
+          >
+            Edit event
+          </button>
+        </div>
+      </div>
+    </article>
+  );
 }
 
 export function AdminEventsTab({ onDataChanged }: AdminEventsTabProps) {
@@ -41,7 +163,6 @@ export function AdminEventsTab({ onDataChanged }: AdminEventsTabProps) {
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EventWithVenue | null>(null);
-
   const [ticketsEvent, setTicketsEvent] = useState<EventWithVenue | null>(null);
 
   const [pendingStatusChange, setPendingStatusChange] = useState<{
@@ -115,6 +236,10 @@ export function AdminEventsTab({ onDataChanged }: AdminEventsTabProps) {
     setEditingEvent(null);
   }, []);
 
+  const closeTicketsModal = useCallback(() => {
+    setTicketsEvent(null);
+  }, []);
+
   const handleEventSaved = async (saved: EventWithVenue, isEdit: boolean) => {
     setFormOpen(false);
     setEditingEvent(null);
@@ -160,7 +285,7 @@ export function AdminEventsTab({ onDataChanged }: AdminEventsTabProps) {
         delete next[event.id];
         return next;
       });
-      setSuccessMessage(`Status of "${event.name}" updated to ${STATUS_LABELS[nextStatus]}.`);
+      setSuccessMessage(`Status of "${event.name}" updated to ${EVENT_STATUS_LABELS[nextStatus]}.`);
       await loadEventsData();
       onDataChanged?.();
     } catch (e) {
@@ -179,33 +304,11 @@ export function AdminEventsTab({ onDataChanged }: AdminEventsTabProps) {
     onDataChanged?.();
   };
 
-  const tabs: { key: EventFilter; label: string }[] = [
-    { key: 'ALL', label: 'All' },
-    { key: 'ACTIVE', label: 'Active' },
-    { key: 'IN_PLANNING', label: 'In planning' },
-    { key: 'FINISHED', label: 'Finished' },
-    { key: 'CANCELLED', label: 'Cancelled' },
-  ];
-
-  const statusChangeDescription = pendingStatusChange
-    ? (() => {
-        const { event, nextStatus } = pendingStatusChange;
-        const base = `Change status of "${event.name}" from ${STATUS_LABELS[event.status]} to ${STATUS_LABELS[nextStatus]}?`;
-        if (nextStatus === 'CANCELLED') {
-          return `${base} Registration will be closed and this change cannot be undone.`;
-        }
-        if (nextStatus === 'FINISHED') {
-          return `${base} Registration will be closed and the event can no longer be edited.`;
-        }
-        return base;
-      })()
-    : '';
-
   return (
     <section aria-label="Manage events">
       <div className="admin-toolbar">
         <div className="filter-tabs" role="group" aria-label="Filter events by status">
-          {tabs.map((tab) => (
+          {EVENT_FILTER_TABS.map((tab) => (
             <button
               key={tab.key}
               type="button"
@@ -241,112 +344,22 @@ export function AdminEventsTab({ onDataChanged }: AdminEventsTabProps) {
 
       {filteredEvents.length > 0 && (
         <div className="admin-list">
-          {filteredEvents.map((event) => {
-            const allowedNext = ALLOWED_STATUS_TRANSITIONS[event.status];
-            const isTerminal = event.status === 'FINISHED' || event.status === 'CANCELLED';
-            const selectedStatus = statusDrafts[event.id] ?? event.status;
-            const summary = ticketSummaries[event.id];
-            const statusOptions: EventStatus[] = [event.status, ...allowedNext];
-
-            return (
-              <article key={event.id} className="card admin-item">
-                <div className="admin-item__head">
-                  <h2 className="admin-item__title">
-                    <Link to={`/events/${event.id}`}>{event.name}</Link>
-                  </h2>
-                  <EventStatusBadge status={event.status} />
-                </div>
-
-                <dl className="admin-item__meta">
-                  <div>
-                    <dt>Schedule</dt>
-                    <dd>{formatDateRange(event.startTimestamp, event.endTimestamp)}</dd>
-                  </div>
-                  <div>
-                    <dt>Venue</dt>
-                    <dd>
-                      {event.venue
-                        ? `${event.venue.name} · ${event.venue.address}`
-                        : 'Venue unavailable'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Organizer</dt>
-                    <dd>{event.organisator}</dd>
-                  </div>
-                  <div>
-                    <dt>Tickets</dt>
-                    <dd>
-                      {summary
-                        ? `${summary.typesCount} ${summary.typesCount === 1 ? 'type' : 'types'} · ${summary.totalRemaining} / ${summary.totalLimit} left`
-                        : 'No ticket types configured'}
-                    </dd>
-                  </div>
-                </dl>
-
-                <div className="admin-item__footer">
-                  {allowedNext.length > 0 ? (
-                    <div className="admin-status-control">
-                      <label
-                        htmlFor={`event-status-${event.id}`}
-                        className="admin-status-control__label"
-                      >
-                        Status
-                      </label>
-                      <select
-                        id={`event-status-${event.id}`}
-                        value={selectedStatus}
-                        disabled={updatingStatus && pendingStatusChange?.event.id === event.id}
-                        onChange={(e) => {
-                          const nextVal = e.target.value as EventStatus;
-                          setStatusDrafts((prev) => ({ ...prev, [event.id]: nextVal }));
-                        }}
-                      >
-                        {statusOptions.map((st) => (
-                          <option key={st} value={st}>
-                            {STATUS_LABELS[st]}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        type="button"
-                        className="btn btn--sm"
-                        disabled={selectedStatus === event.status || updatingStatus}
-                        onClick={() => openStatusConfirmDialog(event)}
-                      >
-                        Update status
-                      </button>
-                    </div>
-                  ) : (
-                    <span className="muted">Final status ({STATUS_LABELS[event.status]})</span>
-                  )}
-
-                  <div className="admin-item__actions">
-                    <button
-                      type="button"
-                      className="btn btn--ghost btn--sm"
-                      onClick={() => setTicketsEvent(event)}
-                    >
-                      Edit tickets ({summary?.typesCount ?? 0})
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn--ghost btn--sm"
-                      disabled={isTerminal}
-                      onClick={() => openEditModal(event)}
-                      title={
-                        isTerminal
-                          ? 'Finished or cancelled events cannot be edited'
-                          : 'Edit event details'
-                      }
-                    >
-                      Edit event
-                    </button>
-                  </div>
-                </div>
-              </article>
-            );
-          })}
+          {filteredEvents.map((event) => (
+            <AdminEventCard
+              key={event.id}
+              event={event}
+              summary={ticketSummaries[event.id]}
+              selectedStatus={statusDrafts[event.id] ?? event.status}
+              updatingThisStatus={updatingStatus && pendingStatusChange?.event.id === event.id}
+              updatingStatus={updatingStatus}
+              onDraftStatusChange={(nextStatus) =>
+                setStatusDrafts((prev) => ({ ...prev, [event.id]: nextStatus }))
+              }
+              onConfirmStatusOpen={() => openStatusConfirmDialog(event)}
+              onEditTickets={() => setTicketsEvent(event)}
+              onEditEvent={() => openEditModal(event)}
+            />
+          ))}
         </div>
       )}
 
@@ -361,7 +374,7 @@ export function AdminEventsTab({ onDataChanged }: AdminEventsTabProps) {
       <EventTicketsModal
         open={ticketsEvent !== null}
         event={ticketsEvent}
-        onClose={() => setTicketsEvent(null)}
+        onClose={closeTicketsModal}
         onChanged={handleTicketsChanged}
       />
 
@@ -370,7 +383,11 @@ export function AdminEventsTab({ onDataChanged }: AdminEventsTabProps) {
         title={
           pendingStatusChange?.nextStatus === 'CANCELLED' ? 'Cancel event?' : 'Change event status?'
         }
-        description={statusChangeDescription}
+        description={
+          pendingStatusChange
+            ? getStatusChangeDescription(pendingStatusChange.event, pendingStatusChange.nextStatus)
+            : ''
+        }
         confirmLabel={
           updatingStatus
             ? 'Updating…'

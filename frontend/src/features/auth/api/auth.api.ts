@@ -1,5 +1,6 @@
 import { ApiError } from '../../../shared/api/errors';
 import { api } from '../../../shared/api/client';
+import { assertNotAborted } from '../../../shared/api/mock-helpers';
 import { useAuthStore, type TokenPair, type User } from '../store/auth.store';
 import { isMockToken, mockFetchMe, mockLogin, mockRegister } from './auth.mock';
 
@@ -13,12 +14,6 @@ export interface RegisterInput {
   phone: string;
   email: string;
   password: string;
-}
-
-function assertNotAborted(signal?: AbortSignal) {
-  if (signal?.aborted) {
-    throw new DOMException('Aborted', 'AbortError');
-  }
 }
 
 export async function fetchMe(signal?: AbortSignal): Promise<User> {

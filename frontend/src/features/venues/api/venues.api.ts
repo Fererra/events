@@ -1,40 +1,14 @@
 import { ApiError } from '../../../shared/api/errors';
+import { assertNotAborted, generateId, paginate } from '../../../shared/api/mock-helpers';
 import type { PaginatedResponse } from '../../../shared/api/types';
-import { useAuthStore } from '../../auth/store/auth.store';
+import { requireAdminUser } from '../../auth/store/auth.store';
 import { hasScheduledEventsAtVenue } from '../../events/api/events.mock';
 import type { Venue, VenueInput } from '../types';
-import { loadMockVenues, saveMockVenues } from './venues.mock';
+import { findMockVenueById, loadMockVenues, saveMockVenues } from './venues.mock';
 
 export interface FetchVenuesParams {
   page?: number;
   limit?: number;
-}
-
-function assertNotAborted(signal?: AbortSignal) {
-  if (signal?.aborted) {
-    throw new DOMException('Aborted', 'AbortError');
-  }
-}
-
-function requireAdmin(): void {
-  const { user, refreshToken } = useAuthStore.getState();
-  if (!user || !refreshToken) {
-    throw new ApiError(401, 'UNAUTHORIZED', 'Please sign in to continue');
-  }
-  if (user.role !== 'admin') {
-    throw new ApiError(403, 'FORBIDDEN', 'Admin role is required');
-  }
-}
-
-function generateUuid(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = Math.floor(Math.random() * 16);
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
 }
 
 function normalizeAddress(address: string): string {
@@ -76,31 +50,13 @@ function validateVenueInput(input: VenueInput): {
   return { name, address, capacity: input.capacity };
 }
 
-export function getMockVenueById(id: string): Venue | null {
-  return loadMockVenues().find((v) => v.id === id) ?? null;
-}
-
 // Mock implementation until backend venue endpoints (/venues, /venues/:id) are available.
 export async function fetchVenues(
   { page = 1, limit = 6 }: FetchVenuesParams = {},
   signal?: AbortSignal,
 ): Promise<PaginatedResponse<Venue>> {
   assertNotAborted(signal);
-
-  const venues = loadMockVenues();
-  const safeLimit = Math.max(1, Math.floor(limit));
-  const total = venues.length;
-  const totalPages = Math.max(1, Math.ceil(total / safeLimit));
-  const safePage = Math.min(Math.max(1, Math.floor(page)), totalPages);
-  const start = (safePage - 1) * safeLimit;
-
-  return {
-    items: venues.slice(start, start + safeLimit),
-    page: safePage,
-    limit: safeLimit,
-    total,
-    totalPages,
-  };
+  return paginate(loadMockVenues(), page, limit);
 }
 
 export async function fetchAllVenues(signal?: AbortSignal): Promise<Venue[]> {
@@ -111,7 +67,7 @@ export async function fetchAllVenues(signal?: AbortSignal): Promise<Venue[]> {
 export async function fetchVenueById(id: string, signal?: AbortSignal): Promise<Venue> {
   assertNotAborted(signal);
 
-  const venue = getMockVenueById(id);
+  const venue = findMockVenueById(id);
   if (!venue) {
     throw new ApiError(404, 'VENUE_NOT_FOUND', 'Venue not found');
   }
@@ -120,7 +76,7 @@ export async function fetchVenueById(id: string, signal?: AbortSignal): Promise<
 
 export async function createVenue(input: VenueInput, signal?: AbortSignal): Promise<Venue> {
   assertNotAborted(signal);
-  requireAdmin();
+  requireAdminUser();
 
   const normalized = validateVenueInput(input);
   const venues = loadMockVenues();
@@ -131,7 +87,7 @@ export async function createVenue(input: VenueInput, signal?: AbortSignal): Prom
   }
 
   const created: Venue = {
-    id: generateUuid(),
+    id: generateId(),
     name: normalized.name,
     address: normalized.address,
     capacity: normalized.capacity,
@@ -148,7 +104,7 @@ export async function updateVenue(
   signal?: AbortSignal,
 ): Promise<Venue> {
   assertNotAborted(signal);
-  requireAdmin();
+  requireAdminUser();
 
   const venues = loadMockVenues();
   const index = venues.findIndex((v) => v.id === id);
@@ -177,7 +133,7 @@ export async function updateVenue(
 
 export async function deleteVenue(id: string, signal?: AbortSignal): Promise<void> {
   assertNotAborted(signal);
-  requireAdmin();
+  requireAdminUser();
 
   const venues = loadMockVenues();
   if (!venues.some((v) => v.id === id)) {

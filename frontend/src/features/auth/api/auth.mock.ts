@@ -1,4 +1,5 @@
 import { ApiError } from '../../../shared/api/errors';
+import { generateId } from '../../../shared/api/mock-helpers';
 import type { TokenPair, User } from '../store/auth.store';
 import type { RegisterInput } from './auth.api';
 
@@ -109,17 +110,6 @@ function toPublicUser(record: MockUserRecord): User {
   return user;
 }
 
-function generateUuid(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = Math.floor(Math.random() * 16);
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
 export function isMockToken(token: string | null): boolean {
   return (
     typeof token === 'string' &&
@@ -152,7 +142,7 @@ export function mockRegister(input: RegisterInput): User {
   }
 
   const created: MockUserRecord = {
-    id: generateUuid(),
+    id: generateId(),
     surname: input.surname.trim(),
     name: input.name.trim(),
     phone: input.phone.trim(),

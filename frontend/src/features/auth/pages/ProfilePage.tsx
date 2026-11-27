@@ -4,7 +4,7 @@ import { OrganizerIcon } from '../../../shared/components/Icons';
 import { formatDate } from '../../../shared/utils/format';
 import { MyRegistrationsSection } from '../../registrations';
 import { fetchMe } from '../api/auth.api';
-import { useAuthStore, type User } from '../store/auth.store';
+import { getUserDisplayName, useAuthStore, type User } from '../store/auth.store';
 
 function getInitials(user: User): string {
   const first = user.name?.trim().charAt(0) ?? '';
@@ -14,22 +14,15 @@ function getInitials(user: User): string {
   return user.email.trim().charAt(0).toUpperCase() || 'U';
 }
 
-function getDisplayName(user: User): string {
-  const fullName = [user.name?.trim(), user.surname?.trim()].filter(Boolean).join(' ');
-  return fullName || user.email;
-}
-
 export function ProfilePage() {
-  const cached = useAuthStore((s) => s.user);
+  const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
-  const [user, setLocal] = useState<User | null>(cached);
   const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     const controller = new AbortController();
     fetchMe(controller.signal)
       .then((u) => {
-        setLocal(u);
         setUser(u);
       })
       .catch((e) => {
@@ -42,10 +35,10 @@ export function ProfilePage() {
   return (
     <section>
       <div className="page-header">
-        <div className="page-header__title">
-          <OrganizerIcon size={24} />
-          <h1>Profile</h1>
-        </div>
+        <h1 className="page-header__title">
+          <OrganizerIcon size={26} />
+          <span>Profile</span>
+        </h1>
         <p className="muted">View your account details and manage your event registrations.</p>
       </div>
 
@@ -65,7 +58,7 @@ export function ProfilePage() {
                     {getInitials(user)}
                   </div>
                   <div className="profile-identity__meta">
-                    <p className="profile-name">{getDisplayName(user)}</p>
+                    <p className="profile-name">{getUserDisplayName(user)}</p>
                     <span
                       className={`badge ${user.role === 'admin' ? 'badge--planning' : 'badge--neutral'}`}
                     >

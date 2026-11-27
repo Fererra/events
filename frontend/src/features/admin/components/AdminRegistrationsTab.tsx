@@ -136,7 +136,7 @@ export function AdminRegistrationsTab({ onDataChanged }: AdminRegistrationsTabPr
           </label>
           <select
             id="admin-reg-event-filter"
-            className="admin-filter-select"
+            className="filter-select"
             value={eventFilter}
             onChange={(e) => setEventFilter(e.target.value)}
           >
