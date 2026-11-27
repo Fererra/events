@@ -70,6 +70,38 @@ export function createVenueEventsChecker(db: DbExecutorProvider): VenueEventsChe
   };
 }
 
+export interface EventBasicInfo {
+  id: string;
+  venueId: string;
+  status: EventStatus;
+}
+
+export interface EventReader {
+  findById(id: string): Promise<EventBasicInfo | null>;
+  findByIdForUpdate(id: string): Promise<EventBasicInfo | null>;
+}
+
+/** Public cross-module event reader for Tickets and Registrations (via events/index.ts). */
+export function createEventReader(db: DbExecutorProvider): EventReader {
+  const repo = new DrizzleEventRepository(db);
+  const toInfo = (event: { id: string; venueId: string; status: EventStatus }): EventBasicInfo => ({
+    id: event.id,
+    venueId: event.venueId,
+    status: event.status,
+  });
+
+  return {
+    async findById(id: string): Promise<EventBasicInfo | null> {
+      const ev = await repo.findById(id);
+      return ev ? toInfo(ev) : null;
+    },
+    async findByIdForUpdate(id: string): Promise<EventBasicInfo | null> {
+      const ev = await repo.findByIdForUpdate(id);
+      return ev ? toInfo(ev) : null;
+    },
+  };
+}
+
 /** Factory so tests can supply custom adapters when needed. */
 export function createEventsModule(overrides: EventsModuleOverrides = {}): AppModule {
   return {

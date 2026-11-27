@@ -31,6 +31,16 @@ export class DrizzleEventRepository implements IEventRepository {
     return row ? toDomain(row) : null;
   }
 
+  async findByIdForUpdate(id: string): Promise<Event | null> {
+    const [row] = await this.db
+      .executor()
+      .select()
+      .from(events)
+      .where(eq(events.id, id))
+      .for('update');
+    return row ? toDomain(row) : null;
+  }
+
   async list(filter: EventListFilter): Promise<EventPage> {
     const db = this.db.executor();
     const conditions: SQL[] = [];

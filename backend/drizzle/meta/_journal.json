@@ -43,6 +43,13 @@
       "when": 1795794339989,
       "tag": "0005_events",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795796232939,
+      "tag": "0006_tickets",
+      "breakpoints": true
     }
   ]
 }
