@@ -27,23 +27,35 @@ export interface TicketReader {
   hasAnyForEvent(eventId: string): Promise<boolean>;
   /** Row lock (`FOR UPDATE`) inside a UnitOfWork — prevents ticket overselling (ES-23). */
   findByIdForUpdate(ticketTypeId: string): Promise<TicketInfo | null>;
+  findByIds(ids: readonly string[]): Promise<Map<string, TicketInfo>>;
 }
 
 /** Public cross-module reader over ticket_types (joins the active UoW transaction). */
 export function createTicketReader(db: DbExecutorProvider): TicketReader {
   const repo = new DrizzleTicketTypeRepository(db);
+  const toInfo = (ticket: {
+    id: string;
+    eventId: string;
+    type: string;
+    limit: number;
+    price: number;
+  }): TicketInfo => ({
+    id: ticket.id,
+    eventId: ticket.eventId,
+    type: ticket.type,
+    limit: ticket.limit,
+    price: ticket.price,
+  });
+
   return {
     hasAnyForEvent: (eventId: string) => repo.hasAnyForEvent(eventId),
     async findByIdForUpdate(ticketTypeId: string): Promise<TicketInfo | null> {
       const ticket = await repo.findByIdForUpdate(ticketTypeId);
-      if (!ticket) return null;
-      return {
-        id: ticket.id,
-        eventId: ticket.eventId,
-        type: ticket.type,
-        limit: ticket.limit,
-        price: ticket.price,
-      };
+      return ticket ? toInfo(ticket) : null;
+    },
+    async findByIds(ids: readonly string[]): Promise<Map<string, TicketInfo>> {
+      const list = await repo.findByIds(ids);
+      return new Map(list.map((t) => [t.id, toInfo(t)]));
     },
   };
 }

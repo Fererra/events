@@ -3,6 +3,7 @@ import type { TicketType } from './ticket-type.js';
 /** Persistence port for ticket types (implemented in infrastructure). */
 export interface ITicketTypeRepository {
   findByIdForUpdate(id: string): Promise<TicketType | null>;
+  findByIds(ids: readonly string[]): Promise<TicketType[]>;
   listByEvent(eventId: string): Promise<TicketType[]>;
   hasAnyForEvent(eventId: string): Promise<boolean>;
   sumLimitsByEvent(eventId: string): Promise<number>;

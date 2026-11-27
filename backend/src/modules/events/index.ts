@@ -79,6 +79,7 @@ export interface EventBasicInfo {
 export interface EventReader {
   findById(id: string): Promise<EventBasicInfo | null>;
   findByIdForUpdate(id: string): Promise<EventBasicInfo | null>;
+  findSummariesByIds(ids: readonly string[]): Promise<Map<string, EventCatalogEntry>>;
 }
 
 /** Public cross-module event reader for Tickets and Registrations (via events/index.ts). */
@@ -98,6 +99,15 @@ export function createEventReader(db: DbExecutorProvider): EventReader {
     async findByIdForUpdate(id: string): Promise<EventBasicInfo | null> {
       const ev = await repo.findByIdForUpdate(id);
       return ev ? toInfo(ev) : null;
+    },
+    async findSummariesByIds(ids: readonly string[]): Promise<Map<string, EventCatalogEntry>> {
+      const list = await repo.findByIds(ids);
+      return new Map(
+        list.map((e) => [
+          e.id,
+          { id: e.id, title: e.title, startsAt: e.startsAt, endsAt: e.endsAt, status: e.status },
+        ]),
+      );
     },
   };
 }

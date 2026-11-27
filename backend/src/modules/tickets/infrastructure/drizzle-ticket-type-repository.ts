@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import type { DbExecutorProvider } from '../../../shared/infrastructure/db/database.js';
 import { isUniqueViolation } from '../../../shared/infrastructure/db/pg-errors.js';
 import { TicketTypeAlreadyExistsError } from '../domain/errors.js';
@@ -29,6 +29,16 @@ export class DrizzleTicketTypeRepository implements ITicketTypeRepository {
       .where(eq(ticketTypes.id, id))
       .for('update');
     return row ? toDomain(row) : null;
+  }
+
+  async findByIds(ids: readonly string[]): Promise<TicketType[]> {
+    if (ids.length === 0) return [];
+    const rows = await this.db
+      .executor()
+      .select()
+      .from(ticketTypes)
+      .where(inArray(ticketTypes.id, [...ids]));
+    return rows.map(toDomain);
   }
 
   async listByEvent(eventId: string): Promise<TicketType[]> {

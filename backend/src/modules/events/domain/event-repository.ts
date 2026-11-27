@@ -22,6 +22,7 @@ export interface EventCatalogRangeFilter {
 /** Persistence port for events (implemented in infrastructure). */
 export interface IEventRepository extends IEventLifecycleRepository {
   findById(id: string): Promise<Event | null>;
+  findByIds(ids: readonly string[]): Promise<Event[]>;
   /** Row lock (`FOR UPDATE`) when called inside a UoW — serializes capacity-sensitive changes. */
   findByIdForUpdate(id: string): Promise<Event | null>;
   list(filter: EventListFilter): Promise<EventPage>;
