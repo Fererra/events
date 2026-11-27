@@ -33,6 +33,10 @@ export class InMemoryEventRepository implements IEventRepository {
     return found ? clone(found) : null;
   }
 
+  async findByIdForUpdate(id: string) {
+    return this.findById(id);
+  }
+
   async list(filter: EventListFilter) {
     const matched = [...this.byId.values()]
       .filter(
