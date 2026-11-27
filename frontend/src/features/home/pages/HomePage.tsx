@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
-import { EventsArt, VenuesArt } from '../components/Illustrations';
+import { useRole } from '../../auth';
+import { AdminArt, EventsArt, VenuesArt } from '../components/Illustrations';
 
 export function HomePage() {
+  const role = useRole();
+
   return (
     <section>
       <div className="hero">
@@ -20,6 +23,12 @@ export function HomePage() {
           <VenuesArt />
           <span className="tile__label">Venues</span>
         </Link>
+        {role === 'admin' && (
+          <Link to="/admin" className="tile tile--wide">
+            <AdminArt />
+            <span className="tile__label">Admin panel</span>
+          </Link>
+        )}
       </div>
     </section>
   );

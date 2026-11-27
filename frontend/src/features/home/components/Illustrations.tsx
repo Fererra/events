@@ -90,3 +90,88 @@ export function VenuesArt() {
     </svg>
   );
 }
+
+export function AdminArt() {
+  return (
+    <svg
+      viewBox="0 0 800 240"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden={true}
+      focusable={false}
+      className="tile__art"
+    >
+      <defs>
+        <linearGradient id="admin-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#2a6ee8" />
+          <stop offset="1" stopColor="#0a2250" />
+        </linearGradient>
+      </defs>
+      <rect width="800" height="240" fill="url(#admin-bg)" />
+      <circle cx="140" cy="54" r="56" fill="#fff" opacity="0.08" />
+      <circle cx="670" cy="190" r="72" fill="#fff" opacity="0.07" />
+      <path
+        d="M80 180 Q210 120 330 155 T690 70"
+        fill="none"
+        stroke="#cfdff8"
+        strokeWidth="2"
+        strokeDasharray="6 6"
+        opacity="0.35"
+      />
+
+      {/* Dashboard control panel card */}
+      <g transform="translate(320 42)">
+        <rect width="290" height="148" rx="14" fill="#0a2250" opacity="0.6" />
+        <rect
+          x="10"
+          y="10"
+          width="270"
+          height="128"
+          rx="10"
+          fill="#0f2f6b"
+          stroke="#a9c6f5"
+          strokeWidth="1.5"
+          opacity="0.9"
+        />
+        {/* Header bar */}
+        <rect x="24" y="24" width="96" height="8" rx="4" fill="#e8f0fd" />
+        <circle cx="242" cy="28" r="4" fill="#a9c6f5" />
+        <circle cx="256" cy="28" r="4" fill="#fff" />
+
+        {/* Toggle rows */}
+        <rect x="24" y="48" width="118" height="28" rx="6" fill="#1f5fd1" opacity="0.55" />
+        <rect x="34" y="59" width="54" height="6" rx="3" fill="#cfdff8" />
+        <rect x="108" y="55" width="24" height="14" rx="7" fill="#fff" />
+        <circle cx="125" cy="62" r="5" fill="#1f5fd1" />
+
+        <rect x="24" y="86" width="118" height="28" rx="6" fill="#1f5fd1" opacity="0.4" />
+        <rect x="34" y="97" width="46" height="6" rx="3" fill="#a9c6f5" />
+        <rect x="108" y="93" width="24" height="14" rx="7" fill="#a9c6f5" />
+        <circle cx="115" cy="100" r="5" fill="#0f2f6b" />
+
+        {/* Bar metrics */}
+        <rect x="156" y="48" width="110" height="66" rx="6" fill="#0a2250" opacity="0.65" />
+        <rect x="172" y="86" width="14" height="18" rx="3" fill="#a9c6f5" />
+        <rect x="194" y="72" width="14" height="32" rx="3" fill="#cfdff8" />
+        <rect x="216" y="60" width="14" height="44" rx="3" fill="#fff" />
+        <rect x="238" y="78" width="14" height="26" rx="3" fill="#a9c6f5" />
+      </g>
+
+      {/* Shield with check emblem */}
+      <g transform="translate(196 50)">
+        <circle cx="52" cy="62" r="54" fill="#1f5fd1" opacity="0.45" />
+        <path
+          d="M52 12 L94 28 V62 C94 90 74 110 52 120 C30 110 10 90 10 62 V28 Z"
+          fill="#fff"
+        />
+        <path
+          d="M36 62 L47 73 L70 50"
+          fill="none"
+          stroke="#1f5fd1"
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
+    </svg>
+  );
+}
