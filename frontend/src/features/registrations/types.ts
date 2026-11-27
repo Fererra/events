@@ -35,3 +35,23 @@ export interface MyRegistration {
   status: RegistrationStatus;
   registeredAt: string;
 }
+
+export interface CreateTicketTypeInput {
+  type: string;
+  limit: number;
+  price: number;
+}
+
+export interface AdminRegistration extends MyRegistration {
+  user: {
+    id: string;
+    fullName: string;
+    email: string;
+  };
+}
+
+export interface EventTicketSummary {
+  typesCount: number;
+  totalLimit: number;
+  totalRemaining: number;
+}

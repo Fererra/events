@@ -1,6 +1,6 @@
 import type { Venue } from '../venues/types';
 
-export type EventStatus = 'IN_PLANNING' | 'DRAFT' | 'ACTIVE' | 'FINISHED' | 'CANCELLED';
+export type EventStatus = 'IN_PLANNING' | 'ACTIVE' | 'FINISHED' | 'CANCELLED';
 
 export interface EventItem {
   id: number;
@@ -17,4 +17,14 @@ export interface EventItem {
 
 export interface EventWithVenue extends EventItem {
   venue: Venue | null;
+}
+
+export interface EventInput {
+  name: string;
+  description: string;
+  startTimestamp: string;
+  endTimestamp: string;
+  organisator: string;
+  venueId: string;
+  status?: EventStatus;
 }
