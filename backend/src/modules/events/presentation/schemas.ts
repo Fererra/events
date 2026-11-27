@@ -43,6 +43,15 @@ export const eventIdParams = {
   },
 } as const;
 
+export const changeEventStatusBody = {
+  type: 'object',
+  required: ['status'],
+  additionalProperties: false,
+  properties: {
+    status: { type: 'string', enum: EVENT_STATUSES },
+  },
+} as const;
+
 export const eventResponse = {
   type: 'object',
   properties: {
@@ -87,4 +96,8 @@ export interface ListEventsQuerystring {
 
 export interface EventIdParams {
   id: string;
+}
+
+export interface ChangeEventStatusBody {
+  status: EventStatus;
 }

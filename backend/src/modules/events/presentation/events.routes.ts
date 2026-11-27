@@ -1,11 +1,13 @@
 import type { FastifyInstance } from 'fastify';
 import type { EventsContainer } from '../events.container.js';
 import {
+  changeEventStatusBody,
   createEventBody,
   eventIdParams,
   eventResponse,
   listEventsQuerystring,
   paginatedEventsResponse,
+  type ChangeEventStatusBody,
   type CreateEventBody,
   type EventIdParams,
   type ListEventsQuerystring,
@@ -39,6 +41,35 @@ export function registerEventsRoutes(app: FastifyInstance, events: EventsContain
         endsAt: new Date(request.body.endsAt),
       });
       return reply.code(201).send(event);
+    },
+  );
+
+  app.patch<{ Params: EventIdParams; Body: ChangeEventStatusBody }>(
+    '/events/:id/status',
+    {
+      preHandler: events.guards.requireAdmin,
+      schema: {
+        params: eventIdParams,
+        body: changeEventStatusBody,
+        response: { 200: eventResponse },
+      },
+    },
+    async (request) =>
+      events.changeStatus.execute({
+        eventId: request.params.id,
+        status: request.body.status,
+      }),
+  );
+
+  app.delete<{ Params: EventIdParams }>(
+    '/events/:id',
+    {
+      preHandler: events.guards.requireAdmin,
+      schema: { params: eventIdParams },
+    },
+    async (request, reply) => {
+      await events.deleteEvent.execute(request.params.id);
+      return reply.code(204).send();
     },
   );
 }

@@ -121,6 +121,10 @@ export class DrizzleEventRepository implements IEventRepository {
       .where(eq(events.id, event.id));
   }
 
+  async delete(id: string): Promise<void> {
+    await this.db.executor().delete(events).where(eq(events.id, id));
+  }
+
   async findActiveEndedBefore(now: Date): Promise<Event[]> {
     const rows = await this.db
       .executor()
