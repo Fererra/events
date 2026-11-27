@@ -7,7 +7,7 @@ import { ListEventTicketsQuery } from './application/queries/list-event-tickets.
 import { CreateTicketTypeUseCase } from './application/use-cases/create-ticket-type.js';
 import { DrizzleTicketTypeRepository } from './infrastructure/drizzle-ticket-type-repository.js';
 import { ModulesEventCapacityLookup } from './infrastructure/modules-event-capacity-lookup.js';
-import { StubSoldTicketsCounter } from './infrastructure/stub-sold-tickets-counter.js';
+import { RegistrationsModuleSoldCounter } from './infrastructure/registrations-module-sold-counter.js';
 
 export interface TicketsModuleOverrides {
   eventCapacity?: IEventCapacityLookup;
@@ -20,7 +20,7 @@ export function createTicketsContainer(ctx: AppContext, overrides: TicketsModule
   const ids = uuidGenerator;
   const tickets = new DrizzleTicketTypeRepository(ctx.db);
   const eventCapacity = overrides.eventCapacity ?? new ModulesEventCapacityLookup(ctx.db);
-  const soldCounter = overrides.soldCounter ?? new StubSoldTicketsCounter();
+  const soldCounter = overrides.soldCounter ?? new RegistrationsModuleSoldCounter(ctx.db);
 
   return {
     tickets,
