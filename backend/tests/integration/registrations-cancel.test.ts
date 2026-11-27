@@ -167,4 +167,50 @@ describe('DELETE /registrations/:id', () => {
     expect(res.statusCode).toBe(409);
     expect(res.json().code).toBe('EVENT_REGISTRATION_CLOSED');
   });
+
+  it('allows admin to cancel any user’s registration via DELETE /registrations/:id and AdminGuard route', async () => {
+    const { eventId, ticketTypeId } = await createPublishedEventWithTicket('Admin Cancel Show', 2);
+    const aliceReg = await register(eventId, ticketTypeId, aliceToken);
+    const bobReg = await register(eventId, ticketTypeId, bobToken);
+
+    // Admin cancels Alice's registration via shared endpoint
+    expect((await cancel(aliceReg, adminToken)).statusCode).toBe(204);
+
+    // AdminGuard endpoint rejects guests (401) and regular users (403), accepts admin (204)
+    expect(
+      (await t.app.inject({ method: 'DELETE', url: `/admin/registrations/${bobReg}` })).statusCode,
+    ).toBe(401);
+    expect(
+      (
+        await t.app.inject({
+          method: 'DELETE',
+          url: `/admin/registrations/${bobReg}`,
+          headers: bearer(bobToken),
+        })
+      ).statusCode,
+    ).toBe(403);
+    expect(
+      (
+        await t.app.inject({
+          method: 'DELETE',
+          url: `/admin/registrations/${bobReg}`,
+          headers: bearer(adminToken),
+        })
+      ).statusCode,
+    ).toBe(204);
+
+    const tickets = await t.app.inject({ method: 'GET', url: `/events/${eventId}/tickets` });
+    expect(tickets.json()[0]).toMatchObject({ limit: 2, remaining: 2 });
+
+    await settle();
+    const analytics = await t.app.inject({
+      method: 'GET',
+      url: '/analytics/events',
+      headers: bearer(adminToken),
+    });
+    const stats = analytics
+      .json<Array<{ event: { id: string }; registrationsCount: number }>>()
+      .find((r) => r.event.id === eventId);
+    expect(stats?.registrationsCount).toBe(0);
+  });
 });

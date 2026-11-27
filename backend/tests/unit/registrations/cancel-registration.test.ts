@@ -37,7 +37,7 @@ describe('CancelRegistrationUseCase', () => {
   it('allows the owner to cancel an active registration and publishes RegistrationCancelled', async () => {
     const { deps, useCase } = await setup('ACTIVE');
 
-    await useCase.execute({ registrationId: 'reg-1', actorId: 'owner-1' });
+    await useCase.execute({ registrationId: 'reg-1', actorId: 'owner-1', actorRole: 'user' });
 
     expect((await deps.registrations.findByIdForUpdate('reg-1'))?.status).toBe('CANCELLED');
     expect(await deps.registrations.countActiveByTicketType('tk-1')).toBe(0);
@@ -53,11 +53,29 @@ describe('CancelRegistrationUseCase', () => {
     ]);
   });
 
-  it('rejects cancelling another user’s registration with ForbiddenError', async () => {
+  it('allows an admin to cancel any user’s registration with cancelledBy: admin', async () => {
+    const { deps, useCase } = await setup('ACTIVE');
+
+    await useCase.execute({ registrationId: 'reg-1', actorId: 'admin-1', actorRole: 'admin' });
+
+    expect((await deps.registrations.findByIdForUpdate('reg-1'))?.status).toBe('CANCELLED');
+    expect(deps.eventBus.published).toEqual([
+      {
+        type: 'RegistrationCancelled',
+        occurredAt: deps.clock.now(),
+        registrationId: 'reg-1',
+        eventId: 'ev-1',
+        userId: 'owner-1',
+        cancelledBy: 'admin',
+      },
+    ]);
+  });
+
+  it('rejects cancelling another user’s registration as a regular user with ForbiddenError', async () => {
     const { deps, useCase } = await setup('ACTIVE');
 
     const err = await useCase
-      .execute({ registrationId: 'reg-1', actorId: 'other-user' })
+      .execute({ registrationId: 'reg-1', actorId: 'other-user', actorRole: 'user' })
       .catch((e: unknown) => e);
 
     expect(err).toBeInstanceOf(ForbiddenError);
@@ -69,7 +87,7 @@ describe('CancelRegistrationUseCase', () => {
     const { deps, useCase } = await setup('ACTIVE', true);
 
     const err = await useCase
-      .execute({ registrationId: 'reg-1', actorId: 'owner-1' })
+      .execute({ registrationId: 'reg-1', actorId: 'owner-1', actorRole: 'user' })
       .catch((e: unknown) => e);
 
     expect(err).toBeInstanceOf(RegistrationAlreadyCancelledError);
@@ -81,7 +99,7 @@ describe('CancelRegistrationUseCase', () => {
     const { deps, useCase } = await setup('FINISHED');
 
     const err = await useCase
-      .execute({ registrationId: 'reg-1', actorId: 'owner-1' })
+      .execute({ registrationId: 'reg-1', actorId: 'owner-1', actorRole: 'user' })
       .catch((e: unknown) => e);
 
     expect(err).toBeInstanceOf(EventRegistrationClosedError);
@@ -93,7 +111,7 @@ describe('CancelRegistrationUseCase', () => {
     const { useCase } = await setup('ACTIVE');
 
     const err = await useCase
-      .execute({ registrationId: 'missing', actorId: 'owner-1' })
+      .execute({ registrationId: 'missing', actorId: 'owner-1', actorRole: 'user' })
       .catch((e: unknown) => e);
 
     expect(err).toBeInstanceOf(NotFoundError);
