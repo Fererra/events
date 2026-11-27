@@ -6,7 +6,11 @@ import type {
 } from '../../../src/modules/events/application/ports/venue-lookup.js';
 import { Event } from '../../../src/modules/events/domain/event.js';
 import { EventPeriod } from '../../../src/modules/events/domain/event-period.js';
-import type { IEventRepository } from '../../../src/modules/events/domain/event-repository.js';
+import type {
+  EventCatalogRangeFilter,
+  EventListFilter,
+  IEventRepository,
+} from '../../../src/modules/events/domain/event-repository.js';
 
 function clone(e: Event): Event {
   return Event.restore({
@@ -27,6 +31,33 @@ export class InMemoryEventRepository implements IEventRepository {
   async findById(id: string) {
     const found = this.byId.get(id);
     return found ? clone(found) : null;
+  }
+
+  async list(filter: EventListFilter) {
+    const matched = [...this.byId.values()]
+      .filter(
+        (e) =>
+          (!filter.venueId || e.venueId === filter.venueId) &&
+          (!filter.status || e.status === filter.status),
+      )
+      .sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime() || a.id.localeCompare(b.id))
+      .map(clone);
+    return {
+      items: matched.slice(filter.offset, filter.offset + filter.limit),
+      total: matched.length,
+    };
+  }
+
+  async listForCatalog(filter: EventCatalogRangeFilter) {
+    return [...this.byId.values()]
+      .filter(
+        (e) =>
+          (!filter.from || e.startsAt >= filter.from) &&
+          (!filter.to || e.startsAt <= filter.to) &&
+          (!filter.status || e.status === filter.status),
+      )
+      .sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime())
+      .map(clone);
   }
 
   async add(event: Event) {
