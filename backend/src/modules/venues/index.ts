@@ -5,10 +5,19 @@
  * Other modules may import ONLY from this file (enforced by ESLint).
  */
 import type { AppModule } from '../../shared/module.js';
+import { registerVenuesRoutes } from './presentation/venues.routes.js';
+import { createVenuesContainer } from './venues.container.js';
 
-export const venuesModule: AppModule = {
-  name: 'venues',
-  register() {
-    // Routes and subscribers are wired here as the module is implemented.
-  },
-};
+export type { VenueDto } from './application/venue-dto.js';
+
+export function createVenuesModule(): AppModule {
+  return {
+    name: 'venues',
+    register(app, ctx) {
+      const container = createVenuesContainer(ctx);
+      registerVenuesRoutes(app, container);
+    },
+  };
+}
+
+export const venuesModule: AppModule = createVenuesModule();

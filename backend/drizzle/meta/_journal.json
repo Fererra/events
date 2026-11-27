@@ -29,6 +29,13 @@
       "when": 1795791100035,
       "tag": "0003_auth_user_profile",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795792118752,
+      "tag": "0004_venues",
+      "breakpoints": true
     }
   ]
 }
