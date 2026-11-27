@@ -13,6 +13,9 @@ function toDomain(row: UserRow): User {
     id: row.id,
     email: Email.create(row.email),
     passwordHash: row.passwordHash,
+    surname: row.surname,
+    name: row.name,
+    phone: row.phone,
     role: row.role,
     createdAt: row.createdAt,
   });
@@ -42,6 +45,9 @@ export class DrizzleUserRepository implements IUserRepository {
         id: user.id,
         email: user.email.value,
         passwordHash: user.passwordHash,
+        surname: user.surname,
+        name: user.name,
+        phone: user.phone,
         role: user.role,
         createdAt: user.createdAt,
       });

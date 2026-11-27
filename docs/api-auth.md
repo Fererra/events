@@ -21,9 +21,15 @@
 
 ```http
 POST /auth/register
-{ "email": "alice@example.com", "password": "secret-pass" }
+{
+  "surname": "Kovalenko",
+  "name": "Olena",
+  "phone": "+380501234567",
+  "email": "alice@example.com",
+  "password": "secret-pass"
+}
 
-201 { "id": "…", "email": "alice@example.com", "role": "user", "createdAt": "2026-11-21T10:00:00.000Z" }
+201 { "id": "…", "email": "alice@example.com", "surname": "Kovalenko", "name": "Olena", "phone": "+380501234567", "role": "user", "createdAt": "2026-11-21T10:00:00.000Z" }
 409 { "code": "EMAIL_TAKEN", "message": "Email is already taken" }
 ```
 
@@ -54,7 +60,7 @@ POST /auth/logout
 GET /me
 Authorization: Bearer <access>
 
-200 { "id": "…", "email": "alice@example.com", "role": "user", "createdAt": "…" }
+200 { "id": "…", "email": "alice@example.com", "surname": "Kovalenko", "name": "Olena", "phone": "+380501234567", "role": "user", "createdAt": "…" }
 401 { "code": "UNAUTHORIZED" | "INVALID_TOKEN" | "TOKEN_EXPIRED", … }
 ```
 
@@ -76,4 +82,4 @@ app.post('/venues', { preHandler: requireAdmin }, async (req) => {
 
 ## Стартовий адміністратор
 
-Публічна реєстрація завжди створює роль `user`. Перший адміністратор створюється при старті з `ADMIN_EMAIL` / `ADMIN_PASSWORD` (див. `.env.example`), якщо такого акаунта ще немає.
+Публічна реєстрація завжди створює роль `user` і вимагає заповнених полів `surname`, `name`, `phone` (телефон не є унікальним; нормалізується при збереженні). Перший адміністратор створюється при старті з `ADMIN_EMAIL` / `ADMIN_PASSWORD` (див. `.env.example`), якщо такого акаунта ще немає; для нього `surname`, `name`, `phone` можуть бути `null`.

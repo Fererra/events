@@ -21,23 +21,23 @@ TypeScript · Fastify · Drizzle ORM · PostgreSQL · JWT + Argon2 · node-cron 
 | Метод | Шлях | Доступ | Картка |
 |---|---|---|---|
 | GET | `/health`, `/health/db` | всі | ES-01, ES-03 |
-| POST | `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout` | гість | ES-07…ES-10 |
+| POST | `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout` | гість / авторизований | ES-07…ES-10 |
 | GET | `/me` | `user` / `admin` | ES-12 |
+| POST / PATCH / DELETE | `/venues`, `/venues/:id` | `admin` | ES-13, ES-15, ES-16 |
+| GET | `/venues?page&limit`, `/venues/:id` | всі | ES-14 |
+| POST / PATCH / DELETE | `/events`, `/events/:id/status`, `/events/:id` | `admin` | ES-18, ES-20 |
+| GET | `/events?page&limit&venueId&status`, `/events/:id` | всі | ES-19 |
+| POST | `/events/:id/tickets` | `admin` | ES-21 |
+| GET | `/events/:id/tickets` | всі | ES-22 |
+| POST | `/events/:eventId/registrations` | `user` / `admin` | ES-23 |
 | GET | `/me/registrations` | `user` / `admin` | ES-26 |
+| DELETE | `/registrations/:id` | власник / `admin` | ES-24, ES-25 |
+| DELETE | `/admin/registrations/:id` | `admin` | ES-25 |
 | GET | `/analytics/events?from&to&status` | `admin` | ES-28 |
 
-Детальніше: [docs/api-auth.md](docs/api-auth.md), [docs/api-analytics.md](docs/api-analytics.md), формат помилок — [docs/api-errors.md](docs/api-errors.md).
+Детальніше: [docs/api-auth.md](docs/api-auth.md), [docs/api-venues.md](docs/api-venues.md), [docs/api-events.md](docs/api-events.md), [docs/api-tickets.md](docs/api-tickets.md), [docs/api-registrations.md](docs/api-registrations.md), [docs/api-analytics.md](docs/api-analytics.md), формат помилок — [docs/api-errors.md](docs/api-errors.md).
 
-## Тимчасові заглушки (порти, що чекають на інші модулі)
-
-Код, що залежить від ще не реалізованих модулів, працює через порти із заглушками. Use case, маршрут і DTO — фінальні; замінюється лише адаптер в `infrastructure/`.
-
-| Порт | Заглушка | Чекає на |
-|---|---|---|
-| `IMyRegistrationsReadModel` (registrations) | `StubMyRegistrationsReadModel` → `[]` | ES-17, ES-21, ES-23 |
-| `IEventCatalog` (analytics → events) | `StubEventCatalog` → `[]` | ES-17, ES-19 |
-| `IEventLifecycleRepository` (events, для планувальника) | `StubEventLifecycleRepository` → `[]` | ES-17 |
-| Публікація `RegistrationCreated` / `RegistrationCancelled` / `EventCancelled` | контракти описані, публікацію додають use cases | ES-23, ES-24/25, ES-20 |
+Усі шість модулів працюють на реальних таблицях PostgreSQL без тимчасових заглушок і взаємодіють виключно через публічні `index.ts` та асинхронну шину доменних подій.
 
 ## Структура репозиторію
 
@@ -100,7 +100,7 @@ npm test
 npm run test:coverage   # звіт у терміналі + backend/coverage/index.html
 ```
 
-Поточний стан: **97 тестів**, покриття **97.2%** рядків / **92.5%** гілок.
+Поточний стан: **247 тестів у 45 файлах**, покриття **98.5%** рядків / **95.3%** гілок / **98.1%** функцій.
 
 CI (GitHub Actions, `.github/workflows/ci.yml`) на кожен PR і push у `main`:
 - **backend** — Prettier, ESLint (з межами модулів), typecheck, тести з покриттям (поріг 90% рядків / 85% гілок), збірка; звіт покриття — артефакт `coverage-report`;

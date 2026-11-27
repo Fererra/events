@@ -1,4 +1,4 @@
-export const EVENT_STATUSES = ['DRAFT', 'ACTIVE', 'FINISHED', 'CANCELLED'] as const;
+export const EVENT_STATUSES = ['IN_PLANNING', 'ACTIVE', 'FINISHED', 'CANCELLED'] as const;
 export type EventStatus = (typeof EVENT_STATUSES)[number];
 
 /** Projection of an event that Analytics needs (LR2: EventInfo). */

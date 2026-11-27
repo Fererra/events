@@ -87,7 +87,14 @@ describe('JwtGuard / AdminGuard', () => {
     const res = await t.app.inject({
       method: 'POST',
       url: '/auth/register',
-      payload: { email: 'sneaky@example.com', password: 'secret-pass', role: 'admin' },
+      payload: {
+        surname: 'Sneaky',
+        name: 'User',
+        phone: '+380501234567',
+        email: 'sneaky@example.com',
+        password: 'secret-pass',
+        role: 'admin',
+      },
     });
     // additionalProperties: false → the extra field is stripped, role stays "user"
     expect(res.statusCode).toBe(201);

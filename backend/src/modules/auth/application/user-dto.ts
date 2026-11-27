@@ -5,6 +5,9 @@ import type { Role } from '../domain/role.js';
 export interface UserDto {
   id: string;
   email: string;
+  surname: string | null;
+  name: string | null;
+  phone: string | null;
   role: Role;
   createdAt: string;
 }
@@ -13,6 +16,9 @@ export function toUserDto(user: User): UserDto {
   return {
     id: user.id,
     email: user.email.value,
+    surname: user.surname,
+    name: user.name,
+    phone: user.phone,
     role: user.role,
     createdAt: user.createdAt.toISOString(),
   };
