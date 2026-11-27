@@ -9,8 +9,19 @@ import type { IVenueRepository } from '../../../src/modules/venues/domain/venue-
 export class InMemoryVenueRepository implements IVenueRepository {
   private readonly byId = new Map<string, Venue>();
 
+  async findById(id: string) {
+    return this.byId.get(id) ?? null;
+  }
+
   async findByNormalizedAddress(normalizedAddress: string) {
     return [...this.byId.values()].find((v) => v.normalizedAddress === normalizedAddress) ?? null;
+  }
+
+  async list({ limit, offset }: { limit: number; offset: number }) {
+    const sorted = [...this.byId.values()].sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime() || a.id.localeCompare(b.id),
+    );
+    return { items: sorted.slice(offset, offset + limit), total: sorted.length };
   }
 
   async add(venue: Venue) {
