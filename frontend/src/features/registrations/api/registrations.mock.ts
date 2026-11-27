@@ -1,6 +1,17 @@
-import { MOCK_DEMO_USER_ID } from '../../auth/api/auth.mock';
-import { MOCK_EVENTS } from '../../events/api/events.mock';
-import type { EventRegistration, MyRegistration, TicketType } from '../types';
+import {
+  findMockUserById,
+  MOCK_DEMO_USER_ID,
+  MOCK_SECOND_USER_ID,
+} from '../../auth/api/auth.mock';
+import { findMockEventById } from '../../events/api/events.mock';
+import type {
+  AdminRegistration,
+  CreateTicketTypeInput,
+  EventRegistration,
+  EventTicketSummary,
+  MyRegistration,
+  TicketType,
+} from '../types';
 
 interface MockTicketSeed {
   id: number;
@@ -11,7 +22,8 @@ interface MockTicketSeed {
   initialSold: number;
 }
 
-const STORAGE_KEY = 'es-mock-registrations-v2';
+const REGISTRATIONS_STORAGE_KEY = 'es-mock-registrations-v3';
+const TICKETS_STORAGE_KEY = 'es-mock-tickets-v1';
 
 const MOCK_TICKET_SEEDS: MockTicketSeed[] = [
   // Event 1: KPI Software Engineering Summit 2026 (ACTIVE)
@@ -103,9 +115,63 @@ const SEED_REGISTRATIONS: EventRegistration[] = [
     status: 'ACTIVE',
     registrationTimestamp: '2026-11-02T10:15:00.000Z',
   },
+  {
+    id: 'reg-seed-0005',
+    userId: MOCK_SECOND_USER_ID,
+    ticketId: 2,
+    status: 'ACTIVE',
+    registrationTimestamp: '2026-11-19T09:30:00.000Z',
+  },
+  {
+    id: 'reg-seed-0006',
+    userId: MOCK_SECOND_USER_ID,
+    ticketId: 5,
+    status: 'ACTIVE',
+    registrationTimestamp: '2026-11-22T14:05:00.000Z',
+  },
 ];
 
 let memoryRegistrations: EventRegistration[] = [...SEED_REGISTRATIONS];
+let memoryTickets: MockTicketSeed[] = [...MOCK_TICKET_SEEDS];
+
+function isValidTicketSeed(item: unknown): item is MockTicketSeed {
+  if (!item || typeof item !== 'object') return false;
+  const t = item as Record<string, unknown>;
+  return (
+    typeof t.id === 'number' &&
+    typeof t.eventId === 'number' &&
+    typeof t.type === 'string' &&
+    typeof t.limit === 'number' &&
+    typeof t.price === 'number' &&
+    typeof t.initialSold === 'number'
+  );
+}
+
+function loadTickets(): MockTicketSeed[] {
+  try {
+    const raw = localStorage.getItem(TICKETS_STORAGE_KEY);
+    if (raw === null) {
+      localStorage.setItem(TICKETS_STORAGE_KEY, JSON.stringify(MOCK_TICKET_SEEDS));
+      memoryTickets = [...MOCK_TICKET_SEEDS];
+      return memoryTickets;
+    }
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return memoryTickets;
+    memoryTickets = parsed.filter(isValidTicketSeed);
+    return memoryTickets;
+  } catch {
+    return memoryTickets;
+  }
+}
+
+function saveTickets(tickets: MockTicketSeed[]): void {
+  memoryTickets = tickets;
+  try {
+    localStorage.setItem(TICKETS_STORAGE_KEY, JSON.stringify(tickets));
+  } catch {
+    // Fallback to in-memory storage when localStorage is unavailable
+  }
+}
 
 function isValidRegistration(item: unknown): item is EventRegistration {
   if (!item || typeof item !== 'object') return false;
@@ -121,9 +187,9 @@ function isValidRegistration(item: unknown): item is EventRegistration {
 
 function loadRegistrations(): EventRegistration[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(REGISTRATIONS_STORAGE_KEY);
     if (raw === null) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_REGISTRATIONS));
+      localStorage.setItem(REGISTRATIONS_STORAGE_KEY, JSON.stringify(SEED_REGISTRATIONS));
       memoryRegistrations = [...SEED_REGISTRATIONS];
       return memoryRegistrations;
     }
@@ -139,7 +205,7 @@ function loadRegistrations(): EventRegistration[] {
 function saveRegistrations(registrations: EventRegistration[]): void {
   memoryRegistrations = registrations;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(registrations));
+    localStorage.setItem(REGISTRATIONS_STORAGE_KEY, JSON.stringify(registrations));
   } catch {
     // Fallback to in-memory storage when localStorage is unavailable
   }
@@ -160,10 +226,13 @@ function toTicketType(seed: MockTicketSeed, registrations: EventRegistration[]):
   };
 }
 
-function toMyRegistration(reg: EventRegistration): MyRegistration | null {
-  const ticket = MOCK_TICKET_SEEDS.find((item) => item.id === reg.ticketId);
+function toMyRegistration(
+  reg: EventRegistration,
+  tickets: MockTicketSeed[],
+): MyRegistration | null {
+  const ticket = tickets.find((item) => item.id === reg.ticketId);
   if (!ticket) return null;
-  const event = MOCK_EVENTS.find((item) => item.id === ticket.eventId);
+  const event = findMockEventById(ticket.eventId);
   if (!event) return null;
 
   return {
@@ -186,17 +255,73 @@ function toMyRegistration(reg: EventRegistration): MyRegistration | null {
 
 export function getMockTicketsByEvent(eventId: number): TicketType[] {
   const registrations = loadRegistrations();
-  return MOCK_TICKET_SEEDS.filter((seed) => seed.eventId === eventId).map((seed) =>
-    toTicketType(seed, registrations),
-  );
+  return loadTickets()
+    .filter((seed) => seed.eventId === eventId)
+    .map((seed) => toTicketType(seed, registrations));
 }
 
 export function findMockTicket(eventId: number, ticketId: number): TicketType | null {
-  const seed = MOCK_TICKET_SEEDS.find(
-    (item) => item.eventId === eventId && item.id === ticketId,
-  );
+  const seed = loadTickets().find((item) => item.eventId === eventId && item.id === ticketId);
   if (!seed) return null;
   return toTicketType(seed, loadRegistrations());
+}
+
+export function hasMockTicketTypeName(eventId: number, typeName: string): boolean {
+  const target = typeName.trim().toLowerCase();
+  return loadTickets().some(
+    (item) => item.eventId === eventId && item.type.trim().toLowerCase() === target,
+  );
+}
+
+export function addMockTicket(eventId: number, input: CreateTicketTypeInput): TicketType {
+  const tickets = loadTickets();
+  const maxId = tickets.reduce((max, item) => (item.id > max ? item.id : max), 0);
+  const createdSeed: MockTicketSeed = {
+    id: maxId + 1,
+    eventId,
+    type: input.type.trim(),
+    limit: input.limit,
+    price: input.price,
+    initialSold: 0,
+  };
+  saveTickets([...tickets, createdSeed]);
+  return toTicketType(createdSeed, loadRegistrations());
+}
+
+export function getMockTicketSoldCount(ticketId: number): number {
+  const seed = loadTickets().find((item) => item.id === ticketId);
+  if (!seed) return 0;
+  const activeRegistrations = loadRegistrations().filter(
+    (reg) => reg.ticketId === ticketId && reg.status === 'ACTIVE',
+  ).length;
+  return seed.initialSold + activeRegistrations;
+}
+
+export function deleteMockTicket(eventId: number, ticketId: number): boolean {
+  const tickets = loadTickets();
+  const exists = tickets.some((item) => item.eventId === eventId && item.id === ticketId);
+  if (!exists) return false;
+  saveTickets(tickets.filter((item) => !(item.eventId === eventId && item.id === ticketId)));
+  return true;
+}
+
+export function getMockTicketSummariesByEvent(): Record<number, EventTicketSummary> {
+  const registrations = loadRegistrations();
+  const summaries: Record<number, EventTicketSummary> = {};
+  for (const seed of loadTickets()) {
+    const ticket = toTicketType(seed, registrations);
+    const current = summaries[seed.eventId] ?? {
+      typesCount: 0,
+      totalLimit: 0,
+      totalRemaining: 0,
+    };
+    summaries[seed.eventId] = {
+      typesCount: current.typesCount + 1,
+      totalLimit: current.totalLimit + ticket.limit,
+      totalRemaining: current.totalRemaining + ticket.remaining,
+    };
+  }
+  return summaries;
 }
 
 export function appendMockRegistration(registration: EventRegistration): void {
@@ -205,9 +330,10 @@ export function appendMockRegistration(registration: EventRegistration): void {
 }
 
 export function getMockRegistrationsByUser(userId: string): MyRegistration[] {
+  const tickets = loadTickets();
   return loadRegistrations()
     .filter((reg) => reg.userId === userId)
-    .map(toMyRegistration)
+    .map((reg) => toMyRegistration(reg, tickets))
     .filter((item): item is MyRegistration => item !== null)
     .sort(
       (a, b) =>
@@ -216,14 +342,37 @@ export function getMockRegistrationsByUser(userId: string): MyRegistration[] {
     );
 }
 
+export function getAllMockRegistrations(): AdminRegistration[] {
+  const tickets = loadTickets();
+  return loadRegistrations()
+    .map((reg): AdminRegistration | null => {
+      const base = toMyRegistration(reg, tickets);
+      if (!base) return null;
+      const user = findMockUserById(reg.userId);
+      const fullName = user
+        ? [user.name, user.surname].filter(Boolean).join(' ') || user.email
+        : 'Unknown user';
+      return {
+        ...base,
+        user: {
+          id: reg.userId,
+          fullName,
+          email: user?.email ?? reg.userId,
+        },
+      };
+    })
+    .filter((item): item is AdminRegistration => item !== null)
+    .sort((a, b) => Date.parse(b.registeredAt) - Date.parse(a.registeredAt));
+}
+
 export function findMockRegistrationById(id: string): EventRegistration | null {
   return loadRegistrations().find((reg) => reg.id === id) ?? null;
 }
 
 export function isMockTicketEventFinished(ticketId: number): boolean {
-  const ticket = MOCK_TICKET_SEEDS.find((item) => item.id === ticketId);
+  const ticket = loadTickets().find((item) => item.id === ticketId);
   if (!ticket) return false;
-  const event = MOCK_EVENTS.find((item) => item.id === ticket.eventId);
+  const event = findMockEventById(ticket.eventId);
   return event?.status === 'FINISHED';
 }
 
@@ -240,5 +389,5 @@ export function cancelMockRegistration(id: string): MyRegistration | null {
   next[index] = updated;
   saveRegistrations(next);
 
-  return toMyRegistration(updated);
+  return toMyRegistration(updated, loadTickets());
 }

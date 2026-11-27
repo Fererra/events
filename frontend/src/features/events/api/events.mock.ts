@@ -1,4 +1,4 @@
-import type { EventItem } from '../types';
+import type { EventItem, EventStatus } from '../types';
 
 const OWNER_ID = '22222222-2222-4222-8222-222222222201';
 
@@ -186,3 +186,92 @@ export const MOCK_EVENTS: EventItem[] = [
     createdAt: '2026-11-22T10:05:00Z',
   },
 ];
+
+const STORAGE_KEY = 'es-mock-events-v1';
+
+let memoryEvents: EventItem[] = [...MOCK_EVENTS];
+
+function isValidEventStatus(status: unknown): status is EventStatus {
+  return (
+    status === 'IN_PLANNING' ||
+    status === 'ACTIVE' ||
+    status === 'FINISHED' ||
+    status === 'CANCELLED'
+  );
+}
+
+function migrateLegacyEvent(item: unknown): unknown {
+  if (!item || typeof item !== 'object') return item;
+  const e = item as Record<string, unknown>;
+  if (e.status === 'DRAFT') {
+    return { ...e, status: 'IN_PLANNING' };
+  }
+  return item;
+}
+
+function isValidEvent(item: unknown): item is EventItem {
+  if (!item || typeof item !== 'object') return false;
+  const e = item as Record<string, unknown>;
+  return (
+    typeof e.id === 'number' &&
+    typeof e.name === 'string' &&
+    typeof e.ownerId === 'string' &&
+    typeof e.description === 'string' &&
+    typeof e.startTimestamp === 'string' &&
+    typeof e.endTimestamp === 'string' &&
+    typeof e.organisator === 'string' &&
+    typeof e.venueId === 'string' &&
+    isValidEventStatus(e.status) &&
+    typeof e.createdAt === 'string'
+  );
+}
+
+export function loadMockEvents(): EventItem[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw === null) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_EVENTS));
+      memoryEvents = [...MOCK_EVENTS];
+      return memoryEvents;
+    }
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return memoryEvents;
+    memoryEvents = parsed.map(migrateLegacyEvent).filter(isValidEvent);
+    return memoryEvents;
+  } catch {
+    return memoryEvents;
+  }
+}
+
+export function saveMockEvents(events: EventItem[]): void {
+  memoryEvents = events;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+  } catch {
+    // Fallback to in-memory storage when localStorage is unavailable
+  }
+}
+
+export function findMockEventById(id: number): EventItem | null {
+  return loadMockEvents().find((item) => item.id === id) ?? null;
+}
+
+export function isScheduledEventStatus(status: EventStatus): boolean {
+  return status !== 'FINISHED' && status !== 'CANCELLED';
+}
+
+export function hasScheduledEventsAtVenue(venueId: string): boolean {
+  return loadMockEvents().some(
+    (event) => event.venueId === venueId && isScheduledEventStatus(event.status),
+  );
+}
+
+export function getScheduledEventCountsByVenue(): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const event of loadMockEvents()) {
+    if (isScheduledEventStatus(event.status)) {
+      counts[event.venueId] = (counts[event.venueId] ?? 0) + 1;
+    }
+  }
+  return counts;
+}

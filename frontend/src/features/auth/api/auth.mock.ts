@@ -11,10 +11,17 @@ const ACCESS_PREFIX = 'mock-access:';
 const REFRESH_PREFIX = 'mock-refresh:';
 
 export const MOCK_DEMO_USER_ID = '33333333-3333-4333-8333-333333333301';
+export const MOCK_DEMO_ADMIN_ID = '33333333-3333-4333-8333-333333333302';
+export const MOCK_SECOND_USER_ID = '33333333-3333-4333-8333-333333333303';
 
 export const MOCK_DEMO_CREDENTIALS = {
   email: 'demo.user@example.com',
   password: 'P123',
+};
+
+export const MOCK_DEMO_ADMIN_CREDENTIALS = {
+  email: 'admin@example.com',
+  password: 'Admin123',
 };
 
 const SEED_USER: MockUserRecord = {
@@ -28,7 +35,31 @@ const SEED_USER: MockUserRecord = {
   createdAt: '2026-10-12T09:30:00.000Z',
 };
 
-let memoryUsers: MockUserRecord[] = [SEED_USER];
+const SEED_ADMIN: MockUserRecord = {
+  id: MOCK_DEMO_ADMIN_ID,
+  surname: 'Petrenko',
+  name: 'Andrii',
+  phone: '+380671112233',
+  email: MOCK_DEMO_ADMIN_CREDENTIALS.email,
+  password: MOCK_DEMO_ADMIN_CREDENTIALS.password,
+  role: 'admin',
+  createdAt: '2026-09-01T08:00:00.000Z',
+};
+
+const SEED_SECOND_USER: MockUserRecord = {
+  id: MOCK_SECOND_USER_ID,
+  surname: 'Bondar',
+  name: 'Maksym',
+  phone: '+380931234567',
+  email: 'maksym.bondar@example.com',
+  password: 'User1234',
+  role: 'user',
+  createdAt: '2026-10-18T14:20:00.000Z',
+};
+
+const SEED_USERS: MockUserRecord[] = [SEED_USER, SEED_ADMIN, SEED_SECOND_USER];
+
+let memoryUsers: MockUserRecord[] = [...SEED_USERS];
 
 function isValidRecord(item: unknown): item is MockUserRecord {
   if (!item || typeof item !== 'object') return false;
@@ -43,10 +74,12 @@ function isValidRecord(item: unknown): item is MockUserRecord {
 }
 
 function mergeWithSeed(records: MockUserRecord[]): MockUserRecord[] {
+  const seedIds = new Set(SEED_USERS.map((u) => u.id));
+  const seedEmails = new Set(SEED_USERS.map((u) => u.email.toLowerCase()));
   const withoutSeed = records.filter(
-    (u) => u.id !== SEED_USER.id && u.email.toLowerCase() !== SEED_USER.email.toLowerCase(),
+    (u) => !seedIds.has(u.id) && !seedEmails.has(u.email.toLowerCase()),
   );
-  return [SEED_USER, ...withoutSeed];
+  return [...SEED_USERS, ...withoutSeed];
 }
 
 function loadUsers(): MockUserRecord[] {
@@ -145,4 +178,9 @@ export function mockFetchMe(accessToken: string | null): User {
   }
 
   return toPublicUser(user);
+}
+
+export function findMockUserById(userId: string): User | null {
+  const user = loadUsers().find((u) => u.id === userId);
+  return user ? toPublicUser(user) : null;
 }

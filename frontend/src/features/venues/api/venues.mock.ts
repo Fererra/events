@@ -58,3 +58,45 @@ export const MOCK_VENUES: Venue[] = [
     createdAt: '2026-11-01T09:10:00Z',
   },
 ];
+
+const STORAGE_KEY = 'es-mock-venues-v1';
+
+let memoryVenues: Venue[] = [...MOCK_VENUES];
+
+function isValidVenue(item: unknown): item is Venue {
+  if (!item || typeof item !== 'object') return false;
+  const v = item as Record<string, unknown>;
+  return (
+    typeof v.id === 'string' &&
+    typeof v.name === 'string' &&
+    typeof v.address === 'string' &&
+    (v.capacity === null || typeof v.capacity === 'number') &&
+    typeof v.createdAt === 'string'
+  );
+}
+
+export function loadMockVenues(): Venue[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw === null) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_VENUES));
+      memoryVenues = [...MOCK_VENUES];
+      return memoryVenues;
+    }
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return memoryVenues;
+    memoryVenues = parsed.filter(isValidVenue);
+    return memoryVenues;
+  } catch {
+    return memoryVenues;
+  }
+}
+
+export function saveMockVenues(venues: Venue[]): void {
+  memoryVenues = venues;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(venues));
+  } catch {
+    // Fallback to in-memory storage when localStorage is unavailable
+  }
+}
