@@ -10,11 +10,12 @@ import type { IRegistrationContextLookup } from '../ports/registration-context-l
 export interface CancelRegistrationCommand {
   registrationId: string;
   actorId: string;
+  actorRole: 'user' | 'admin';
 }
 
 /**
- * Command: cancels the caller's own active registration, freeing the ticket seat
- * and publishing RegistrationCancelled after COMMIT.
+ * Command: cancels an active registration (by its owner or an administrator),
+ * freeing the ticket seat and publishing RegistrationCancelled after COMMIT.
  */
 export class CancelRegistrationUseCase {
   constructor(
@@ -30,8 +31,12 @@ export class CancelRegistrationUseCase {
       const registration = await this.registrations.findByIdForUpdate(cmd.registrationId);
       if (!registration) throw new NotFoundError('Registration', cmd.registrationId);
 
-      if (registration.userId !== cmd.actorId) {
-        throw new ForbiddenError('FORBIDDEN', 'Only the registration owner can cancel it');
+      const isOwner = registration.userId === cmd.actorId;
+      if (!isOwner && cmd.actorRole !== 'admin') {
+        throw new ForbiddenError(
+          'FORBIDDEN',
+          'Only the owner or an admin can cancel a registration',
+        );
       }
 
       const event = await this.context.findEventById(registration.eventId);
@@ -48,7 +53,7 @@ export class CancelRegistrationUseCase {
         registrationId: registration.id,
         eventId: registration.eventId,
         userId: registration.userId,
-        cancelledBy: 'owner',
+        cancelledBy: isOwner ? 'owner' : 'admin',
       };
       this.eventBus.publish(cancelled);
     });

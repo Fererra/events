@@ -42,9 +42,28 @@ export function registerRegistrationsRoutes(
       schema: { params: registrationIdParams },
     },
     async (request, reply) => {
+      const actor = currentUser(request);
       await registrations.cancelRegistration.execute({
         registrationId: request.params.id,
-        actorId: currentUser(request).userId,
+        actorId: actor.userId,
+        actorRole: actor.role,
+      });
+      return reply.code(204).send();
+    },
+  );
+
+  app.delete<{ Params: RegistrationIdParams }>(
+    '/admin/registrations/:id',
+    {
+      preHandler: registrations.guards.requireAdmin,
+      schema: { params: registrationIdParams },
+    },
+    async (request, reply) => {
+      const actor = currentUser(request);
+      await registrations.cancelRegistration.execute({
+        registrationId: request.params.id,
+        actorId: actor.userId,
+        actorRole: actor.role,
       });
       return reply.code(204).send();
     },
