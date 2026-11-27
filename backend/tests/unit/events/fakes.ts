@@ -60,6 +60,10 @@ export class InMemoryEventRepository implements IEventRepository {
       .map(clone);
   }
 
+  async hasScheduledForVenue(venueId: string) {
+    return [...this.byId.values()].some((e) => e.venueId === venueId && e.isScheduled());
+  }
+
   async add(event: Event) {
     this.byId.set(event.id, clone(event));
   }

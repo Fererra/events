@@ -1,5 +1,6 @@
 import type { IUnitOfWork } from '../../../src/shared/application/unit-of-work.js';
 import type { IClock, IIdGenerator } from '../../../src/modules/venues/application/ports/clock.js';
+import type { IVenueEventsChecker } from '../../../src/modules/venues/application/ports/venue-events-checker.js';
 import { VenueAddressAlreadyTakenError } from '../../../src/modules/venues/domain/errors.js';
 import { Venue } from '../../../src/modules/venues/domain/venue.js';
 import type { IVenueRepository } from '../../../src/modules/venues/domain/venue-repository.js';
@@ -50,8 +51,24 @@ export class InMemoryVenueRepository implements IVenueRepository {
     this.byId.set(venue.id, clone(venue));
   }
 
+  async delete(id: string) {
+    this.byId.delete(id);
+  }
+
   all() {
     return [...this.byId.values()].map(clone);
+  }
+}
+
+export class FakeVenueEventsChecker implements IVenueEventsChecker {
+  private readonly busyVenues = new Set<string>();
+
+  markBusy(venueId: string) {
+    this.busyVenues.add(venueId);
+  }
+
+  async hasScheduledEvents(venueId: string) {
+    return this.busyVenues.has(venueId);
   }
 }
 
