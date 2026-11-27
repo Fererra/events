@@ -36,6 +36,13 @@
       "when": 1795792118752,
       "tag": "0004_venues",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795794339989,
+      "tag": "0005_events",
+      "breakpoints": true
     }
   ]
 }
