@@ -6,7 +6,7 @@
 |---|---|
 | `auth` | Реєстрація, вхід, JWT (access 15 хв / refresh 7 днів), ролі `user` / `admin` |
 | `venues` | Локації: назва, унікальна адреса, місткість |
-| `events` | Події та їх життєвий цикл (`DRAFT → ACTIVE → FINISHED / CANCELLED`) |
+| `events` | Події та їх життєвий цикл (`IN_PLANNING → ACTIVE → FINISHED / CANCELLED`) |
 | `tickets` | Типи квитків події: ліміт і ціна |
 | `registrations` | Реєстрація на подію з атомарною перевіркою ліміту |
 | `analytics` | Статистика `event_stats`, оновлюється асинхронно з доменних подій |
