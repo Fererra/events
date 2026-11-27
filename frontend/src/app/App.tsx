@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import { Layout } from './Layout';
 import { GuestOnly, RequireAuth } from './guards';
 import { AdminPage } from '../features/admin';
+import { AnalyticsPage } from '../features/analytics';
 import { LoginPage, ProfilePage, RegisterPage } from '../features/auth';
 import { EventDetailsPage, EventsListPage } from '../features/events';
 import { HomePage } from '../features/home';
@@ -26,6 +27,7 @@ export function App() {
         </Route>
         <Route element={<RequireAuth role="admin" />}>
           <Route path="admin" element={<AdminPage />} />
+          <Route path="analytics" element={<AnalyticsPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>
