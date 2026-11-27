@@ -67,4 +67,22 @@ export class DrizzleVenueRepository implements IVenueRepository {
       throw err;
     }
   }
+
+  async save(venue: Venue): Promise<void> {
+    try {
+      await this.db
+        .executor()
+        .update(venues)
+        .set({
+          name: venue.name,
+          address: venue.address,
+          normalizedAddress: venue.normalizedAddress,
+          capacity: venue.capacity,
+        })
+        .where(eq(venues.id, venue.id));
+    } catch (err) {
+      if (isUniqueViolation(err)) throw new VenueAddressAlreadyTakenError();
+      throw err;
+    }
+  }
 }

@@ -12,4 +12,6 @@ export interface IVenueRepository {
   list(params: { limit: number; offset: number }): Promise<VenuePage>;
   /** Inserts a new venue. Throws VenueAddressAlreadyTakenError on a duplicate address. */
   add(venue: Venue): Promise<void>;
+  /** Persists edits to an existing venue. Throws VenueAddressAlreadyTakenError on duplicate address. */
+  save(venue: Venue): Promise<void>;
 }

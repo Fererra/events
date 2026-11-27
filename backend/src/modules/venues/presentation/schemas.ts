@@ -15,6 +15,17 @@ export const createVenueBody = {
   },
 } as const;
 
+export const updateVenueBody = {
+  type: 'object',
+  minProperties: 1,
+  additionalProperties: false,
+  properties: {
+    name: { type: 'string', minLength: 1, maxLength: VENUE_NAME_MAX_LENGTH },
+    address: { type: 'string', minLength: 1, maxLength: VENUE_ADDRESS_MAX_LENGTH },
+    capacity: { type: 'number' },
+  },
+} as const;
+
 export const listVenuesQuerystring = {
   type: 'object',
   additionalProperties: false,
@@ -59,6 +70,12 @@ export interface CreateVenueBody {
   name: string;
   address: string;
   capacity: number;
+}
+
+export interface UpdateVenueBody {
+  name?: string;
+  address?: string;
+  capacity?: number;
 }
 
 export interface ListVenuesQuerystring {

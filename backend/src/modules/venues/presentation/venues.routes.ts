@@ -4,10 +4,12 @@ import {
   createVenueBody,
   listVenuesQuerystring,
   paginatedVenuesResponse,
+  updateVenueBody,
   venueIdParams,
   venueResponse,
   type CreateVenueBody,
   type ListVenuesQuerystring,
+  type UpdateVenueBody,
   type VenueIdParams,
 } from './schemas.js';
 
@@ -36,5 +38,14 @@ export function registerVenuesRoutes(app: FastifyInstance, venues: VenuesContain
       const venue = await venues.createVenue.execute(request.body);
       return reply.code(201).send(venue);
     },
+  );
+
+  app.patch<{ Params: VenueIdParams; Body: UpdateVenueBody }>(
+    '/venues/:id',
+    {
+      preHandler: venues.guards.requireAdmin,
+      schema: { params: venueIdParams, body: updateVenueBody, response: { 200: venueResponse } },
+    },
+    async (request) => venues.updateVenue.execute({ id: request.params.id, ...request.body }),
   );
 }
