@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useRole } from '../../auth';
-import { AdminArt, EventsArt, VenuesArt } from '../components/Illustrations';
+import { AdminArt, AnalyticsArt, EventsArt, VenuesArt } from '../components/Illustrations';
 
 export function HomePage() {
   const role = useRole();
@@ -24,10 +24,16 @@ export function HomePage() {
           <span className="tile__label">Venues</span>
         </Link>
         {role === 'admin' && (
-          <Link to="/admin" className="tile tile--wide">
-            <AdminArt />
-            <span className="tile__label">Admin panel</span>
-          </Link>
+          <>
+            <Link to="/admin" className="tile tile--wide">
+              <AdminArt />
+              <span className="tile__label">Admin panel</span>
+            </Link>
+            <Link to="/analytics" className="tile tile--wide">
+              <AnalyticsArt />
+              <span className="tile__label">Analytics</span>
+            </Link>
+          </>
         )}
       </div>
     </section>

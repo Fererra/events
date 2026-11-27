@@ -104,3 +104,25 @@ export function ShieldIcon({ size = 20, className }: IconProps) {
     </svg>
   );
 }
+
+export function AnalyticsIcon({ size = 20, className }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M3 3v18h18" />
+      <path d="M8 17v-4" />
+      <path d="M13 17V7" />
+      <path d="M18 17v-7" />
+    </svg>
+  );
+}

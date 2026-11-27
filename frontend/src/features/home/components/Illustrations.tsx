@@ -175,3 +175,100 @@ export function AdminArt() {
     </svg>
   );
 }
+
+export function AnalyticsArt() {
+  return (
+    <svg
+      viewBox="0 0 800 240"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden={true}
+      focusable={false}
+      className="tile__art"
+    >
+      <defs>
+        <linearGradient id="analytics-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#2a6ee8" />
+          <stop offset="1" stopColor="#0a2250" />
+        </linearGradient>
+      </defs>
+      <rect width="800" height="240" fill="url(#analytics-bg)" />
+      <circle cx="150" cy="186" r="64" fill="#fff" opacity="0.07" />
+      <circle cx="670" cy="48" r="54" fill="#fff" opacity="0.08" />
+
+      {/* Donut chart emblem */}
+      <g transform="translate(186 48)">
+        <circle cx="62" cy="64" r="56" fill="#1f5fd1" opacity="0.45" />
+        <circle cx="62" cy="64" r="46" fill="#0a2250" opacity="0.55" />
+        <circle
+          cx="62"
+          cy="64"
+          r="32"
+          fill="none"
+          stroke="#a9c6f5"
+          strokeWidth="14"
+          opacity="0.45"
+        />
+        <circle
+          cx="62"
+          cy="64"
+          r="32"
+          fill="none"
+          stroke="#fff"
+          strokeWidth="14"
+          strokeDasharray="125 202"
+          strokeLinecap="round"
+          transform="rotate(-90 62 64)"
+        />
+        <circle cx="62" cy="64" r="16" fill="#0f2f6b" />
+      </g>
+
+      {/* Main analytics chart card */}
+      <g transform="translate(328 36)">
+        <rect width="310" height="162" rx="14" fill="#0a2250" opacity="0.6" />
+        <rect
+          x="10"
+          y="10"
+          width="290"
+          height="142"
+          rx="10"
+          fill="#0f2f6b"
+          stroke="#a9c6f5"
+          strokeWidth="1.5"
+          opacity="0.92"
+        />
+        {/* Header indicators */}
+        <rect x="26" y="24" width="108" height="8" rx="4" fill="#e8f0fd" />
+        <rect x="234" y="24" width="48" height="8" rx="4" fill="#a9c6f5" opacity="0.7" />
+
+        {/* Subtle gridlines */}
+        <line x1="26" y1="54" x2="282" y2="54" stroke="#a9c6f5" strokeWidth="1" opacity="0.2" />
+        <line x1="26" y1="84" x2="282" y2="84" stroke="#a9c6f5" strokeWidth="1" opacity="0.2" />
+        <line x1="26" y1="114" x2="282" y2="114" stroke="#a9c6f5" strokeWidth="1" opacity="0.25" />
+
+        {/* Rising bars */}
+        <rect x="38" y="96" width="22" height="36" rx="4" fill="#a9c6f5" opacity="0.75" />
+        <rect x="78" y="80" width="22" height="52" rx="4" fill="#cfdff8" opacity="0.85" />
+        <rect x="118" y="90" width="22" height="42" rx="4" fill="#a9c6f5" opacity="0.75" />
+        <rect x="158" y="64" width="22" height="68" rx="4" fill="#cfdff8" opacity="0.92" />
+        <rect x="198" y="72" width="22" height="60" rx="4" fill="#a9c6f5" opacity="0.85" />
+        <rect x="238" y="48" width="22" height="84" rx="4" fill="#fff" />
+
+        {/* Trend line with data nodes */}
+        <polyline
+          points="49,88 89,68 129,76 169,52 209,58 249,38"
+          fill="none"
+          stroke="#e8f0fd"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="49" cy="88" r="4.5" fill="#fff" stroke="#1f5fd1" strokeWidth="2" />
+        <circle cx="89" cy="68" r="4.5" fill="#fff" stroke="#1f5fd1" strokeWidth="2" />
+        <circle cx="129" cy="76" r="4.5" fill="#fff" stroke="#1f5fd1" strokeWidth="2" />
+        <circle cx="169" cy="52" r="4.5" fill="#fff" stroke="#1f5fd1" strokeWidth="2" />
+        <circle cx="209" cy="58" r="4.5" fill="#fff" stroke="#1f5fd1" strokeWidth="2" />
+        <circle cx="249" cy="38" r="5" fill="#fff" stroke="#1f5fd1" strokeWidth="2" />
+      </g>
+    </svg>
+  );
+}
