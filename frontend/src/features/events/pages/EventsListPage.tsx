@@ -121,57 +121,63 @@ export function EventsListPage() {
       {data && data.items.length > 0 && (
         <>
           <div className="entity-grid">
-            {data.items.map((event) => (
-              <article key={event.id} className="card entity-card">
-                <div className="entity-card__head">
-                  <h2 className="entity-card__title">
-                    <Link to={`/events/${event.id}`}>{event.name}</Link>
-                  </h2>
-                  <EventStatusBadge status={event.status} />
-                </div>
-
-                <dl className="entity-card__meta entity-card__meta--icons">
-                  <div>
-                    <dt title="When">
-                      <ClockIcon size={16} />
-                      <span className="sr-only">When</span>
-                    </dt>
-                    <dd>{formatDateRange(event.startTimestamp, event.endTimestamp)}</dd>
+            {data.items.map((event) => {
+              const isMuted = event.status === 'CANCELLED' || event.status === 'FINISHED';
+              return (
+                <article
+                  key={event.id}
+                  className={`card entity-card${isMuted ? ' entity-card--muted' : ''}`}
+                >
+                  <div className="entity-card__head">
+                    <h2 className="entity-card__title">
+                      <Link to={`/events/${event.id}`}>{event.name}</Link>
+                    </h2>
+                    <EventStatusBadge status={event.status} />
                   </div>
-                  <div>
-                    <dt title="Venue">
-                      <MapPinIcon size={16} />
-                      <span className="sr-only">Venue</span>
-                    </dt>
-                    <dd>
-                      {event.venue ? (
-                        <>
-                          <Link to={`/venues/${event.venue.id}`}>{event.venue.name}</Link>
-                          <span className="entity-card__sub"> · {event.venue.address}</span>
-                        </>
-                      ) : (
-                        'Venue unavailable'
-                      )}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt title="Organizer">
-                      <OrganizerIcon size={16} />
-                      <span className="sr-only">Organizer</span>
-                    </dt>
-                    <dd>by {event.organisator}</dd>
-                  </div>
-                </dl>
 
-                <p className="entity-card__desc">{event.description}</p>
+                  <dl className="entity-card__meta entity-card__meta--icons">
+                    <div>
+                      <dt title="When">
+                        <ClockIcon size={16} />
+                        <span className="sr-only">When</span>
+                      </dt>
+                      <dd>{formatDateRange(event.startTimestamp, event.endTimestamp)}</dd>
+                    </div>
+                    <div>
+                      <dt title="Venue">
+                        <MapPinIcon size={16} />
+                        <span className="sr-only">Venue</span>
+                      </dt>
+                      <dd>
+                        {event.venue ? (
+                          <>
+                            <Link to={`/venues/${event.venue.id}`}>{event.venue.name}</Link>
+                            <span className="entity-card__sub"> · {event.venue.address}</span>
+                          </>
+                        ) : (
+                          'Venue unavailable'
+                        )}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt title="Organizer">
+                        <OrganizerIcon size={16} />
+                        <span className="sr-only">Organizer</span>
+                      </dt>
+                      <dd>by {event.organisator}</dd>
+                    </div>
+                  </dl>
 
-                <div className="entity-card__footer">
-                  <Link to={`/events/${event.id}`} className="btn btn--ghost">
-                    View details
-                  </Link>
-                </div>
-              </article>
-            ))}
+                  <p className="entity-card__desc">{event.description}</p>
+
+                  <div className="entity-card__footer">
+                    <Link to={`/events/${event.id}`} className="btn btn--ghost">
+                      View details
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
           </div>
 
           <Pagination

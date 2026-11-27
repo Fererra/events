@@ -96,8 +96,32 @@
   background: var(--blue-50);
 }
 
+.analytics-table__row--active {
+  background: #f2faf4;
+}
+.analytics-table tbody tr.analytics-table__row--active:hover {
+  background: #e6f4ea;
+}
+
+.analytics-table__row--planning {
+  background: #f3f8ff;
+}
+.analytics-table tbody tr.analytics-table__row--planning:hover {
+  background: #e8f1ff;
+}
+
+.analytics-table__row--finished {
+  background: #f0f3f7;
+}
+.analytics-table tbody tr.analytics-table__row--finished:hover {
+  background: #e6ebf2;
+}
+
 .analytics-table__row--cancelled {
-  background: #fdf9f9;
+  background: #fdf2f1;
+}
+.analytics-table tbody tr.analytics-table__row--cancelled:hover {
+  background: #fbe5e3;
 }
 
 .analytics-table__event-link {

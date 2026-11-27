@@ -10,7 +10,8 @@ import { validateEmail, validateRequiredPassword } from '../../../shared/utils/v
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const from = (useLocation().state as { from?: string } | null)?.from ?? '/events';
+  const redirectFrom = (useLocation().state as { from?: string } | null)?.from;
+  const target = redirectFrom ?? '/';
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const serverFields = fieldErrors(error);
@@ -30,7 +31,7 @@ export function LoginPage() {
     setError(null);
     try {
       await login(v.email.trim(), v.password);
-      navigate(from, { replace: true });
+      navigate(target, { replace: true });
     } catch (e) {
       setError(e);
     } finally {
@@ -44,7 +45,7 @@ export function LoginPage() {
     setError(null);
     try {
       await login(email, password);
-      navigate(from, { replace: true });
+      navigate(target, { replace: true });
     } catch (e) {
       setError(e);
     } finally {
@@ -76,7 +77,7 @@ export function LoginPage() {
         </button>
         <p className="muted">
           New here?{' '}
-          <Link to="/register" state={{ from }}>
+          <Link to="/register" state={redirectFrom ? { from: redirectFrom } : undefined}>
             Create an account
           </Link>
         </p>

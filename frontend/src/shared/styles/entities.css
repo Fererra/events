@@ -26,6 +26,25 @@
   border-color: var(--blue-600);
   box-shadow: 0 6px 18px rgba(15, 47, 107, 0.08);
 }
+.entity-card--muted {
+  background: #edf0f5;
+  border-color: #d0d7e2;
+  color: var(--muted);
+}
+.entity-card--muted:hover {
+  border-color: #adb8c9;
+  box-shadow: 0 6px 18px rgba(15, 47, 107, 0.05);
+}
+.entity-card--muted .entity-card__title {
+  color: #465368;
+}
+.entity-card--muted .entity-card__meta,
+.entity-card--muted .entity-card__meta--icons dt {
+  color: var(--muted);
+}
+.entity-card--muted .entity-card__meta a {
+  color: #465368;
+}
 .entity-card__head {
   display: flex;
   align-items: flex-start;

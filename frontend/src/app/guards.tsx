@@ -19,6 +19,6 @@ export function RequireAuth({ role }: { role?: Role }) {
 export function GuestOnly() {
   const authed = useIsAuthed();
   const from = (useLocation().state as { from?: string } | null)?.from;
-  if (authed) return <Navigate to={from ?? '/events'} replace />;
+  if (authed) return <Navigate to={from ?? '/'} replace />;
   return <Outlet />;
 }

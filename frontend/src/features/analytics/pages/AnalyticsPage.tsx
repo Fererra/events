@@ -18,6 +18,13 @@ const STATUS_TABS: { key: StatusFilter; label: string }[] = [
   { key: 'CANCELLED', label: 'Cancelled' },
 ];
 
+const ROW_STATUS_CLASS: Record<EventStatus, string> = {
+  ACTIVE: 'analytics-table__row--active',
+  IN_PLANNING: 'analytics-table__row--planning',
+  FINISHED: 'analytics-table__row--finished',
+  CANCELLED: 'analytics-table__row--cancelled',
+};
+
 const numberFormatter = new Intl.NumberFormat('en-US');
 
 function parseStatusParam(raw: string | null): StatusFilter {
@@ -265,7 +272,11 @@ export function AnalyticsPage() {
                 {sortedItems.map((item) => (
                   <tr
                     key={item.event.id}
-                    className={item.isCancelled ? 'analytics-table__row--cancelled' : undefined}
+                    className={
+                      item.isCancelled
+                        ? ROW_STATUS_CLASS.CANCELLED
+                        : ROW_STATUS_CLASS[item.event.status]
+                    }
                   >
                     <td>
                       <Link to={`/events/${item.event.id}`} className="analytics-table__event-link">
