@@ -1,8 +1,10 @@
+import { MAX_LIMIT } from '../../../shared/application/pagination.js';
 import {
   EVENT_DESCRIPTION_MAX_LENGTH,
   EVENT_ORGANIZER_MAX_LENGTH,
   EVENT_STATUSES,
   EVENT_TITLE_MAX_LENGTH,
+  type EventStatus,
 } from '../domain/event.js';
 
 /** JSON Schemas for event request validation and response serialization. */
@@ -21,6 +23,26 @@ export const createEventBody = {
   },
 } as const;
 
+export const listEventsQuerystring = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    page: { type: 'integer', minimum: 1 },
+    limit: { type: 'integer', minimum: 1, maximum: MAX_LIMIT },
+    venueId: { type: 'string', format: 'uuid' },
+    status: { type: 'string', enum: EVENT_STATUSES },
+  },
+} as const;
+
+export const eventIdParams = {
+  type: 'object',
+  required: ['id'],
+  additionalProperties: false,
+  properties: {
+    id: { type: 'string', format: 'uuid' },
+  },
+} as const;
+
 export const eventResponse = {
   type: 'object',
   properties: {
@@ -36,6 +58,17 @@ export const eventResponse = {
   },
 } as const;
 
+export const paginatedEventsResponse = {
+  type: 'object',
+  properties: {
+    items: { type: 'array', items: eventResponse },
+    page: { type: 'integer' },
+    limit: { type: 'integer' },
+    total: { type: 'integer' },
+    totalPages: { type: 'integer' },
+  },
+} as const;
+
 export interface CreateEventBody {
   title: string;
   description: string;
@@ -43,4 +76,15 @@ export interface CreateEventBody {
   endsAt: string;
   organizer: string;
   venueId: string;
+}
+
+export interface ListEventsQuerystring {
+  page?: number;
+  limit?: number;
+  venueId?: string;
+  status?: EventStatus;
+}
+
+export interface EventIdParams {
+  id: string;
 }

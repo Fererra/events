@@ -3,6 +3,8 @@ import { authGuards } from '../auth/index.js';
 import { systemClock, uuidGenerator } from './application/ports/clock.js';
 import type { IEventLifecycleRepository } from './application/ports/event-lifecycle-repository.js';
 import type { IVenueLookup } from './application/ports/venue-lookup.js';
+import { GetEventQuery } from './application/queries/get-event.js';
+import { ListEventsQuery } from './application/queries/list-events.js';
 import { CreateEventUseCase } from './application/use-cases/create-event.js';
 import { SyncEventStatusesUseCase } from './application/use-cases/sync-event-statuses.js';
 import { DrizzleEventRepository } from './infrastructure/drizzle-event-repository.js';
@@ -24,6 +26,8 @@ export function createEventsContainer(ctx: AppContext, overrides: EventsModuleOv
   return {
     events,
     guards: authGuards(ctx.config),
+    listEvents: new ListEventsQuery(events),
+    getEvent: new GetEventQuery(events),
     createEvent: new CreateEventUseCase(events, venues, ctx.uow, clock, ids),
     syncStatuses: new SyncEventStatusesUseCase(lifecycle, ctx.uow),
   };

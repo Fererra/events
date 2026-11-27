@@ -1,8 +1,13 @@
-import { and, eq, lte } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, lte, type SQL } from 'drizzle-orm';
 import type { DbExecutorProvider } from '../../../shared/infrastructure/db/database.js';
 import { Event } from '../domain/event.js';
 import { EventPeriod } from '../domain/event-period.js';
-import type { IEventRepository } from '../domain/event-repository.js';
+import type {
+  EventCatalogRangeFilter,
+  EventListFilter,
+  EventPage,
+  IEventRepository,
+} from '../domain/event-repository.js';
 import { events, type EventRow } from './events.schema.js';
 
 function toDomain(row: EventRow): Event {
@@ -24,6 +29,46 @@ export class DrizzleEventRepository implements IEventRepository {
   async findById(id: string): Promise<Event | null> {
     const [row] = await this.db.executor().select().from(events).where(eq(events.id, id)).limit(1);
     return row ? toDomain(row) : null;
+  }
+
+  async list(filter: EventListFilter): Promise<EventPage> {
+    const db = this.db.executor();
+    const conditions: SQL[] = [];
+    if (filter.venueId) conditions.push(eq(events.venueId, filter.venueId));
+    if (filter.status) conditions.push(eq(events.status, filter.status));
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [rows, totals] = await Promise.all([
+      db
+        .select()
+        .from(events)
+        .where(where)
+        .orderBy(desc(events.startsAt), asc(events.id))
+        .limit(filter.limit)
+        .offset(filter.offset),
+      db.select({ total: count() }).from(events).where(where),
+    ]);
+
+    return {
+      items: rows.map(toDomain),
+      total: Number(totals[0]?.total ?? 0),
+    };
+  }
+
+  async listForCatalog(filter: EventCatalogRangeFilter): Promise<Event[]> {
+    const conditions: SQL[] = [];
+    if (filter.from) conditions.push(gte(events.startsAt, filter.from));
+    if (filter.to) conditions.push(lte(events.startsAt, filter.to));
+    if (filter.status) conditions.push(eq(events.status, filter.status));
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const rows = await this.db
+      .executor()
+      .select()
+      .from(events)
+      .where(where)
+      .orderBy(desc(events.startsAt), asc(events.id));
+    return rows.map(toDomain);
   }
 
   async add(event: Event): Promise<void> {
