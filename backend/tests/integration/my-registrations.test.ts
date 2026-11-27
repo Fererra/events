@@ -79,7 +79,7 @@ describe('GET /me/registrations', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('default (stub) read model returns an empty list', async () => {
+  it('default read model returns an empty list when user has no registrations', async () => {
     const plain = await createTestApp();
     const { accessToken } = await registerAndLogin(plain.app, 'carol@example.com');
     const res = await plain.app.inject({

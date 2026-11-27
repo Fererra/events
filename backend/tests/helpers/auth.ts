@@ -5,14 +5,37 @@ export interface TokenPair {
   refreshToken: string;
 }
 
-export async function register(app: FastifyInstance, email: string, password = 'secret-pass') {
+export interface UserProfileInput {
+  surname: string;
+  name: string;
+  phone: string;
+}
+
+export const DEFAULT_PROFILE: UserProfileInput = {
+  surname: 'Kovalenko',
+  name: 'Olena',
+  phone: '+380501234567',
+};
+
+export async function register(
+  app: FastifyInstance,
+  email: string,
+  password = 'secret-pass',
+  profile: Partial<UserProfileInput> = {},
+) {
   const res = await app.inject({
     method: 'POST',
     url: '/auth/register',
-    payload: { email, password },
+    payload: { ...DEFAULT_PROFILE, ...profile, email, password },
   });
   if (res.statusCode !== 201) throw new Error(`register failed: ${res.statusCode} ${res.body}`);
-  return res.json<{ id: string; email: string }>();
+  return res.json<{
+    id: string;
+    email: string;
+    surname: string | null;
+    name: string | null;
+    phone: string | null;
+  }>();
 }
 
 export async function login(

@@ -6,7 +6,7 @@
 |---|---|
 | `auth` | Реєстрація, вхід, JWT (access 15 хв / refresh 7 днів), ролі `user` / `admin` |
 | `venues` | Локації: назва, унікальна адреса, місткість |
-| `events` | Події та їх життєвий цикл (`DRAFT → ACTIVE → FINISHED / CANCELLED`) |
+| `events` | Події та їх життєвий цикл (`IN_PLANNING → ACTIVE → FINISHED / CANCELLED`) |
 | `tickets` | Типи квитків події: ліміт і ціна |
 | `registrations` | Реєстрація на подію з атомарною перевіркою ліміту |
 | `analytics` | Статистика `event_stats`, оновлюється асинхронно з доменних подій |
@@ -39,7 +39,7 @@ presentation  →  application  →  domain  ←  infrastructure
   - `afterCommit(cb)` — побічна дія після COMMIT, асинхронно, не впливає на відповідь; при ROLLBACK скасовується.
   - Поточна транзакція зберігається в `AsyncLocalStorage`, тож репозиторії беруть `ctx.db.executor()` і автоматично працюють у ній — use cases не бачать типів ORM.
 - **Health:** `GET /health` (liveness), `GET /health/db` (readiness, `select 1`).
-- **Тести** використовують PGlite — PostgreSQL у процесі, без Docker.
+- **Тести:** юніт- та компонентні тести (`npm test`) використовують PGlite (PostgreSQL у процесі, без Docker), а контур API E2E та конкурентності (`npm run test:e2e`) виконується проти реального контейнера PostgreSQL 17 (`docker-compose.test.yml`).
 
 ## Контракт модуля
 

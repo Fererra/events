@@ -1,4 +1,6 @@
-export type RegistrationStatus = 'ACTIVE' | 'CANCELLED';
+import type { RegistrationStatus } from '../../domain/registration.js';
+
+export type { RegistrationStatus };
 
 /** Read-side projection for "my registrations" (CQS query side, no domain entities). */
 export interface MyRegistrationView {
