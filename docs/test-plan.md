@@ -26,7 +26,7 @@
 | **API E2E (Docker DB)** | Vitest + `fastify.inject` | Реальний `postgres:17-alpine` (`pg.Pool`) | Повні потоки Auth/RBAC, Venues/Events/Tickets, реальне багатоз'єднаннєве блокування `SELECT … FOR UPDATE` | ES-37…ES-40 |
 | **Smoke / Deploy** | Docker Compose + `curl` (CI) | `web` (nginx HTTPS) + `app` + `postgres` | Старт з нуля, healthchecks, TLS на єдиному порту `443`, реальні міграції | ES-02, ES-37 |
 | **Performance / Load** | k6 | Docker Compose (`web` + `app` + `postgres`) | `50 RPS`, `p95 ≤ 300 мс`, стабільність під навантаженням без деградації та overselling | ES-41 |
-| **UI / Cross-browser** | Playwright + Lighthouse | Chromium, Firefox, WebKit (`360px` / `1440px`) | Адаптивність, відображення помилок (`F25`), кросбраузерність (`N7`), `p95 ≤ 2 с` (`N3`) | ES-42 |
+| **UI / Cross-browser** | Playwright + Lighthouse | Chromium, Firefox, WebKit (`360px` / `768px` / `1440px`) | Адаптивність, відображення помилок (`F25`), кросбраузерність (`N7`), `p95 ≤ 2 с` (`N3`) | ES-42 |
 | **Regression** | Автотести + ручний чекліст | Повний інтегрований стенд | Передрелізна перевірка критичних сценаріїв і фіксація дефектів | ES-43 |
 
 ---

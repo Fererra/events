@@ -12,7 +12,7 @@
 |---|---|---|---|---|
 | **Статичний аналіз бекенду** | Prettier, ESLint (межі модулів N11/N12), `tsc --noEmit`, `tsc -p tsconfig.build.json` | Уся кодова база `backend/` | ✅ Passed | 0 попереджень, 0 помилок |
 | **Юніт-тести** | Vitest (`backend/tests/unit`) | 23 файли · **142 тести** | ✅ Passed | Доменні сутності, інваріанти, use cases, JWT, UoW, EventBus |
-| **Компонентні API-тести** | Vitest + PGlite (`backend/tests/integration`) | 22 файли · **105 тестів** | ✅ Passed | Покриття V8: **98.5%** рядків / **95.3%** гілок / **98.1%** функцій |
+| **Компонентні API-тести** | Vitest + PGlite (`backend/tests/integration`) | 22 файли · **105 тестів** | ✅ Passed | Покриття V8: **98.5%** рядків / **95.5%** гілок / **98.2%** функцій |
 | **API E2E на реальному PostgreSQL 17** | Vitest + `postgres:17-alpine` (`backend/tests/e2e`, `ES-37`…`ES-40`) | 4 файли · **25 тестів** | ✅ Passed | Auth/RBAC (9 адмін-маршрутів), Venues/Events/Tickets/Analytics, 30 паралельних запитів на 5 місць без overselling (4.55 с) |
 | **Навантажувальне тестування (N2)** | `grafana/k6` через Docker Compose (`tests/load/k6-api-load.js`, `ES-41`) | **1704 запити** · 55.43 RPS | ✅ Passed | `p95 = 11.89 мс` (`≤ 300 мс`), 0.00% помилок ([load-testing.md](load-testing.md)) |
 | **Кросбраузерні та адаптивні UI-тести (N6, N7)** | Playwright (`tests/ui/`, `ES-42`) | 6 проєктів · **60 тестів** | ✅ Passed | Chromium 159, Firefox 159, WebKit 27.2 у `360×800`, `768×1024`, `1440×900` ([ui-compatibility-report.md](ui-compatibility-report.md)) |

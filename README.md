@@ -14,7 +14,7 @@
 
 ## Стек
 
-TypeScript · Fastify · Drizzle ORM · PostgreSQL · JWT + Argon2 · node-cron · React.js · Docker Compose · Vitest
+TypeScript · Fastify · Drizzle ORM · PostgreSQL · JWT + Argon2 · node-cron · React.js · Docker Compose · Vitest · k6 · Playwright
 
 ## API
 
@@ -54,11 +54,15 @@ backend/
         application/    use cases (CQS), порти
         domain/         сутності, об'єкти-значення, інтерфейси репозиторіїв
         infrastructure/ реалізації портів (ORM, Argon2, JWT, адаптери)
-  tests/                тести (Vitest)
+  tests/                тести бекенду (Vitest: unit, integration на PGlite, e2e на PostgreSQL 17)
   Dockerfile            образ app
 docker/web/             образ web (nginx, TLS, SPA)
 docker-compose.yml      web + app + postgres
-docs/                   документація проєкту
+docker-compose.test.yml ізольований PostgreSQL 17 для API E2E та конкурентних тестів
+tests/
+  load/                 навантажувальний сценарій k6 (ES-41)
+  ui/                   кросбраузерні та адаптивні тести Playwright (ES-42)
+docs/                   документація проєкту та QA-звіти
 ```
 
 ## Запуск через Docker Compose
@@ -85,7 +89,7 @@ npm run dev        # http://localhost:3000/health
 
 Потрібен запущений PostgreSQL (`DATABASE_URL`, за замовчуванням `postgres://events:events@localhost:5432/events`), наприклад `docker compose up -d postgres` з відкритим портом або локальний сервер. Міграції застосовуються автоматично при старті.
 
-Інші команди: `npm run build`, `npm start`, `npm test`, `npm run lint`, `npm run typecheck`, `npm run format`, `npm run db:generate` (нова міграція після зміни `*.schema.ts`).
+Інші команди: `npm run build`, `npm start`, `npm test`, `npm run test:e2e`, `npm run lint`, `npm run typecheck`, `npm run format`, `npm run db:generate` (нова міграція після зміни `*.schema.ts`).
 
 ## Тести
 
@@ -94,16 +98,24 @@ cd backend
 npm test
 ```
 
-Юніт-тести (`tests/unit`) працюють з in-memory фейками портів, інтеграційні (`tests/integration`) — з повним застосунком через `fastify.inject` на **PGlite** (PostgreSQL у процесі), тому Docker для тестів не потрібен.
+Юніт-тести (`tests/unit`) працюють з in-memory фейками портів, компонентні (`tests/integration`) — з повним застосунком через `fastify.inject` на **PGlite** (PostgreSQL у процесі), тому Docker для швидкого запуску не потрібен.
 
 ```bash
 npm run test:coverage   # звіт у терміналі + backend/coverage/index.html
+
+# API E2E та конкурентні тести на реальному контейнері PostgreSQL 17 (ES-37…ES-40)
+docker compose -f docker-compose.test.yml up -d --wait
+npm --prefix backend run test:e2e
+docker compose -f docker-compose.test.yml down
 ```
 
-Поточний стан: **247 тестів у 45 файлах**, покриття **98.5%** рядків / **95.3%** гілок / **98.1%** функцій.
+Навантажувальний сценарій **k6** (`55 RPS`, `p95 ≤ 300 мс`, `ES-41`) — [tests/load/k6-api-load.js](tests/load/k6-api-load.js) (звіт: [docs/load-testing.md](docs/load-testing.md)); кросбраузерні й адаптивні тести **Playwright** (`ES-42`) — `tests/ui/` (звіт: [docs/ui-compatibility-report.md](docs/ui-compatibility-report.md)).
+
+Поточний стан: **332 автотести** (`247` unit/PGlite у 45 файлах + `25` PostgreSQL 17 E2E у 4 файлах + `60` Playwright UI), покриття бекенду **98.5%** рядків / **95.5%** гілок / **98.2%** функцій.
 
 CI (GitHub Actions, `.github/workflows/ci.yml`) на кожен PR і push у `main`:
 - **backend** — Prettier, ESLint (з межами модулів), typecheck, тести з покриттям (поріг 90% рядків / 85% гілок), збірка; звіт покриття — артефакт `coverage-report`;
+- **api-e2e** — прогін `npm run test:e2e` (Auth/RBAC, Venues/Events/Tickets/Analytics, конкурентний тест overselling) проти сервіс-контейнера `postgres:17-alpine`;
 - **docker** — `docker compose up --build --wait` і smoke-тест через nginx: `/`, `/api/health`, `/api/health/db`, реєстрація та вхід стартового адміна на реальному PostgreSQL; перевірка, що назовні опубліковано лише HTTPS-порт.
 
 У `main` зміни потрапляють лише через PR із зеленими перевірками.
@@ -112,7 +124,7 @@ CI (GitHub Actions, `.github/workflows/ci.yml`) на кожен PR і push у `m
 
 [docs/requirements-traceability.md](docs/requirements-traceability.md) — матриця «вимога ЛР1 → картка → тест-кейси → реалізація → тести» для всіх функціональних (F1–F25) і нефункціональних (N1–N14) вимог, а також покриття коду за модулями.
 
-[docs/test-plan.md](docs/test-plan.md) — стратегія тестування та повний каталог позитивних, негативних, граничних і конкурентних тест-кейсів (`TC-*`).
+[docs/test-plan.md](docs/test-plan.md) — стратегія тестування та повний каталог позитивних, негативних, граничних і конкурентних тест-кейсів (`TC-*`); передрелізний звіт регресії та реєстр дефектів — [docs/regression-report.md](docs/regression-report.md).
 
 ## Команда
 
