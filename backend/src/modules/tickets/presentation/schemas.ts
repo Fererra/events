@@ -35,6 +35,22 @@ export const ticketTypeResponse = {
   },
 } as const;
 
+export const eventTicketsResponse = {
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      id: { type: 'string' },
+      eventId: { type: 'string' },
+      type: { type: 'string' },
+      limit: { type: 'integer' },
+      price: { type: 'number' },
+      remaining: { type: 'integer' },
+      createdAt: { type: 'string' },
+    },
+  },
+} as const;
+
 export interface EventIdParams {
   id: string;
 }

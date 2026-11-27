@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 import type { DbExecutorProvider } from '../../../shared/infrastructure/db/database.js';
 import { isUniqueViolation } from '../../../shared/infrastructure/db/pg-errors.js';
 import { TicketTypeAlreadyExistsError } from '../domain/errors.js';
@@ -20,6 +20,36 @@ function toDomain(row: TicketTypeRow): TicketType {
 
 export class DrizzleTicketTypeRepository implements ITicketTypeRepository {
   constructor(private readonly db: DbExecutorProvider) {}
+
+  async findByIdForUpdate(id: string): Promise<TicketType | null> {
+    const [row] = await this.db
+      .executor()
+      .select()
+      .from(ticketTypes)
+      .where(eq(ticketTypes.id, id))
+      .for('update');
+    return row ? toDomain(row) : null;
+  }
+
+  async listByEvent(eventId: string): Promise<TicketType[]> {
+    const rows = await this.db
+      .executor()
+      .select()
+      .from(ticketTypes)
+      .where(eq(ticketTypes.eventId, eventId))
+      .orderBy(asc(ticketTypes.price), asc(ticketTypes.createdAt), asc(ticketTypes.id));
+    return rows.map(toDomain);
+  }
+
+  async hasAnyForEvent(eventId: string): Promise<boolean> {
+    const [row] = await this.db
+      .executor()
+      .select({ id: ticketTypes.id })
+      .from(ticketTypes)
+      .where(eq(ticketTypes.eventId, eventId))
+      .limit(1);
+    return row !== undefined;
+  }
 
   async sumLimitsByEvent(eventId: string): Promise<number> {
     const [row] = await this.db

@@ -4,7 +4,8 @@ export interface EventCapacityInfo {
   venueCapacity: number;
 }
 
-/** Consumer-side port: looks up an event (locked for update) and its venue's capacity. */
+/** Consumer-side port: checks event existence or resolves event + venue capacity (locked). */
 export interface IEventCapacityLookup {
+  eventExists(eventId: string): Promise<boolean>;
   findEventWithCapacityForUpdate(eventId: string): Promise<EventCapacityInfo | null>;
 }

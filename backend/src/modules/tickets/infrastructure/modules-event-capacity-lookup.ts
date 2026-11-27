@@ -16,6 +16,10 @@ export class ModulesEventCapacityLookup implements IEventCapacityLookup {
     this.venues = createVenueReader(db);
   }
 
+  async eventExists(eventId: string): Promise<boolean> {
+    return (await this.events.findById(eventId)) !== null;
+  }
+
   async findEventWithCapacityForUpdate(eventId: string): Promise<EventCapacityInfo | null> {
     const event = await this.events.findByIdForUpdate(eventId);
     if (!event) return null;
