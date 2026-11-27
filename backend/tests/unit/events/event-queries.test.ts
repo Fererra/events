@@ -22,7 +22,7 @@ async function seed(repo: InMemoryEventRepository) {
   }
 }
 
-describe('Events queries (ES-19)', () => {
+describe('Events queries', () => {
   it('returns empty page with defaults', async () => {
     const repo = new InMemoryEventRepository();
     expect(await new ListEventsQuery(repo).execute()).toEqual({

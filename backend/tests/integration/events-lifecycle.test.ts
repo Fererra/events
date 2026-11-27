@@ -7,7 +7,7 @@ import { createTestApp, type TestApp } from '../helpers/test-app.js';
 
 const VENUE_ID = '11111111-1111-4111-8111-111111111111';
 
-describe('Events persistence & scheduler integration on PGlite (ES-17)', () => {
+describe('Events persistence & scheduler integration on PGlite', () => {
   let t: TestApp;
   let repo: DrizzleEventRepository;
 

@@ -4,7 +4,7 @@ import { createTestApp, type TestApp } from '../helpers/test-app.js';
 
 const ADMIN = { ADMIN_EMAIL: 'admin@example.com', ADMIN_PASSWORD: 'admin-password' };
 
-describe('GET /events, GET /events/:id and live Analytics EventCatalog (ES-19)', () => {
+describe('GET /events, GET /events/:id and live Analytics EventCatalog', () => {
   let t: TestApp;
   let adminToken: string;
   let userToken: string;

@@ -21,7 +21,7 @@ async function seed(repo: InMemoryVenueRepository, count: number) {
   return items;
 }
 
-describe('Venues queries (ES-14)', () => {
+describe('Venues queries', () => {
   it('lists venues with defaults when empty', async () => {
     const repo = new InMemoryVenueRepository();
     const res = await new ListVenuesQuery(repo).execute();
