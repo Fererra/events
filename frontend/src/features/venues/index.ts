@@ -1,4 +1,12 @@
 export { VenuesListPage } from './pages/VenuesListPage';
 export { VenueDetailsPage } from './pages/VenueDetailsPage';
-export { fetchVenues, fetchVenueById, getMockVenueById } from './api/venues.api';
-export type { Venue } from './types';
+export {
+  fetchVenues,
+  fetchAllVenues,
+  fetchVenueById,
+  getMockVenueById,
+  createVenue,
+  updateVenue,
+  deleteVenue,
+} from './api/venues.api';
+export type { Venue, VenueInput } from './types';
