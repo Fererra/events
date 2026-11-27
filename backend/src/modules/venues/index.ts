@@ -9,6 +9,7 @@ import { registerVenuesRoutes } from './presentation/venues.routes.js';
 import { createVenuesContainer } from './venues.container.js';
 
 export type { VenueDto } from './application/venue-dto.js';
+export type { PaginatedVenuesDto } from './application/queries/list-venues.js';
 
 export function createVenuesModule(): AppModule {
   return {

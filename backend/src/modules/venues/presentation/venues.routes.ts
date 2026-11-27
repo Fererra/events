@@ -1,8 +1,31 @@
 import type { FastifyInstance } from 'fastify';
 import type { VenuesContainer } from '../venues.container.js';
-import { createVenueBody, venueResponse, type CreateVenueBody } from './schemas.js';
+import {
+  createVenueBody,
+  listVenuesQuerystring,
+  paginatedVenuesResponse,
+  venueIdParams,
+  venueResponse,
+  type CreateVenueBody,
+  type ListVenuesQuerystring,
+  type VenueIdParams,
+} from './schemas.js';
 
 export function registerVenuesRoutes(app: FastifyInstance, venues: VenuesContainer): void {
+  app.get<{ Querystring: ListVenuesQuerystring }>(
+    '/venues',
+    {
+      schema: { querystring: listVenuesQuerystring, response: { 200: paginatedVenuesResponse } },
+    },
+    async (request) => venues.listVenues.execute(request.query),
+  );
+
+  app.get<{ Params: VenueIdParams }>(
+    '/venues/:id',
+    { schema: { params: venueIdParams, response: { 200: venueResponse } } },
+    async (request) => venues.getVenue.execute(request.params.id),
+  );
+
   app.post<{ Body: CreateVenueBody }>(
     '/venues',
     {

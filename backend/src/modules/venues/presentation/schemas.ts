@@ -1,3 +1,4 @@
+import { MAX_LIMIT } from '../../../shared/application/pagination.js';
 import { VENUE_ADDRESS_MAX_LENGTH, VENUE_NAME_MAX_LENGTH } from '../domain/venue.js';
 
 /** JSON Schemas for venue request validation and response serialization. */
@@ -14,6 +15,24 @@ export const createVenueBody = {
   },
 } as const;
 
+export const listVenuesQuerystring = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    page: { type: 'integer', minimum: 1 },
+    limit: { type: 'integer', minimum: 1, maximum: MAX_LIMIT },
+  },
+} as const;
+
+export const venueIdParams = {
+  type: 'object',
+  required: ['id'],
+  additionalProperties: false,
+  properties: {
+    id: { type: 'string', format: 'uuid' },
+  },
+} as const;
+
 export const venueResponse = {
   type: 'object',
   properties: {
@@ -25,8 +44,28 @@ export const venueResponse = {
   },
 } as const;
 
+export const paginatedVenuesResponse = {
+  type: 'object',
+  properties: {
+    items: { type: 'array', items: venueResponse },
+    page: { type: 'integer' },
+    limit: { type: 'integer' },
+    total: { type: 'integer' },
+    totalPages: { type: 'integer' },
+  },
+} as const;
+
 export interface CreateVenueBody {
   name: string;
   address: string;
   capacity: number;
+}
+
+export interface ListVenuesQuerystring {
+  page?: number;
+  limit?: number;
+}
+
+export interface VenueIdParams {
+  id: string;
 }
