@@ -1,6 +1,7 @@
+import { createMockCollection } from '../../../shared/api/mock-helpers';
 import type { Venue } from '../types';
 
-export const MOCK_VENUES: Venue[] = [
+const MOCK_VENUES: Venue[] = [
   {
     id: '11111111-1111-4111-8111-111111111101',
     name: 'KPI Center for Culture and Arts',
@@ -61,8 +62,6 @@ export const MOCK_VENUES: Venue[] = [
 
 const STORAGE_KEY = 'es-mock-venues-v1';
 
-let memoryVenues: Venue[] = [...MOCK_VENUES];
-
 function isValidVenue(item: unknown): item is Venue {
   if (!item || typeof item !== 'object') return false;
   const v = item as Record<string, unknown>;
@@ -75,28 +74,11 @@ function isValidVenue(item: unknown): item is Venue {
   );
 }
 
-export function loadMockVenues(): Venue[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw === null) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_VENUES));
-      memoryVenues = [...MOCK_VENUES];
-      return memoryVenues;
-    }
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return memoryVenues;
-    memoryVenues = parsed.filter(isValidVenue);
-    return memoryVenues;
-  } catch {
-    return memoryVenues;
-  }
-}
+const venuesCollection = createMockCollection(STORAGE_KEY, MOCK_VENUES, isValidVenue);
 
-export function saveMockVenues(venues: Venue[]): void {
-  memoryVenues = venues;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(venues));
-  } catch {
-    // Fallback to in-memory storage when localStorage is unavailable
-  }
+export const loadMockVenues = venuesCollection.load;
+export const saveMockVenues = venuesCollection.save;
+
+export function findMockVenueById(id: string): Venue | null {
+  return loadMockVenues().find((v) => v.id === id) ?? null;
 }

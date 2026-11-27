@@ -4,7 +4,8 @@ import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { MapPinIcon } from '../../../shared/components/Icons';
 import { Pagination, parsePageParam } from '../../../shared/components/Pagination';
 import type { PaginatedResponse } from '../../../shared/api/types';
-import { fetchEventCountsByVenue } from '../../events/api/events.api';
+import { formatCapacity } from '../../../shared/utils/format';
+import { fetchEventCountsByVenue } from '../../events';
 import { fetchVenues } from '../api/venues.api';
 import type { Venue } from '../types';
 
@@ -86,11 +87,7 @@ export function VenuesListPage() {
                     </div>
                     <div>
                       <dt>Capacity</dt>
-                      <dd>
-                        {venue.capacity !== null
-                          ? `${venue.capacity} people`
-                          : 'Capacity not specified'}
-                      </dd>
+                      <dd>{formatCapacity(venue.capacity, 'Capacity not specified')}</dd>
                     </div>
                   </dl>
 

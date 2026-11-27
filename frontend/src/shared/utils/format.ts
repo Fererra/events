@@ -48,11 +48,25 @@ export function formatDateRange(startIso: string, endIso: string): string {
   return `${dateTimeFormatter.format(start)} – ${dateTimeFormatter.format(end)}`;
 }
 
+const integerFormatter = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 0,
+});
+
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+export function formatNumber(value: number): string {
+  return integerFormatter.format(value);
+}
+
+export function formatCapacity(capacity: number | null, fallback = 'Not specified'): string {
+  return capacity !== null ? `${capacity} people` : fallback;
+}
+
 export function formatPrice(price: number): string {
   if (price <= 0) return 'Free';
-  const formatter = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: Number.isInteger(price) ? 0 : 2,
-    maximumFractionDigits: 2,
-  });
+  const formatter = Number.isInteger(price) ? integerFormatter : currencyFormatter;
   return `${formatter.format(price)} UAH`;
 }

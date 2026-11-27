@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { logout, useAuthStore, useIsAuthed, useRole } from '../features/auth';
+import { getUserDisplayName, logout, useAuthStore, useIsAuthed, useRole } from '../features/auth';
 import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import {
   AnalyticsIcon,
@@ -29,9 +29,7 @@ export function Layout() {
   const navigate = useNavigate();
   const authed = useIsAuthed();
   const role = useRole();
-  const profileTitle = useAuthStore(
-    (s) => [s.user?.name, s.user?.surname].filter(Boolean).join(' ') || s.user?.email,
-  );
+  const profileTitle = useAuthStore((s) => (s.user ? getUserDisplayName(s.user) : undefined));
 
   useEffect(() => setOpen(false), [pathname]);
 

@@ -7,36 +7,20 @@ import { Pagination, parsePageParam } from '../../../shared/components/Paginatio
 import { formatDateRange } from '../../../shared/utils/format';
 import { fetchEventCountsByStatus, fetchEvents } from '../api/events.api';
 import { EventStatusBadge } from '../components/EventStatusBadge';
-import type { EventStatus, EventWithVenue } from '../types';
+import {
+  EVENT_FILTER_TABS,
+  isTerminalEventStatus,
+  parseEventStatusFilter,
+  type EventFilter,
+  type EventWithVenue,
+} from '../types';
 
 const PAGE_LIMIT = 6;
-
-type EventFilter = 'ALL' | EventStatus;
-
-const FILTER_TABS: { key: EventFilter; label: string }[] = [
-  { key: 'ALL', label: 'All' },
-  { key: 'ACTIVE', label: 'Active' },
-  { key: 'IN_PLANNING', label: 'In planning' },
-  { key: 'FINISHED', label: 'Finished' },
-  { key: 'CANCELLED', label: 'Cancelled' },
-];
-
-function parseStatusParam(raw: string | null): EventFilter {
-  if (
-    raw === 'ACTIVE' ||
-    raw === 'IN_PLANNING' ||
-    raw === 'FINISHED' ||
-    raw === 'CANCELLED'
-  ) {
-    return raw;
-  }
-  return 'ALL';
-}
 
 export function EventsListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parsePageParam(searchParams.get('page'));
-  const status = parseStatusParam(searchParams.get('status'));
+  const status = parseEventStatusFilter(searchParams.get('status'));
 
   const [data, setData] = useState<PaginatedResponse<EventWithVenue> | null>(null);
   const [counts, setCounts] = useState<Record<EventFilter, number> | null>(null);
@@ -90,7 +74,7 @@ export function EventsListPage() {
 
       <div className="events-filters">
         <div className="filter-tabs" role="group" aria-label="Filter events by status">
-          {FILTER_TABS.map((tab) => (
+          {EVENT_FILTER_TABS.map((tab) => (
             <button
               key={tab.key}
               type="button"
@@ -122,7 +106,7 @@ export function EventsListPage() {
         <>
           <div className="entity-grid">
             {data.items.map((event) => {
-              const isMuted = event.status === 'CANCELLED' || event.status === 'FINISHED';
+              const isMuted = isTerminalEventStatus(event.status);
               return (
                 <article
                   key={event.id}

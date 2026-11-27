@@ -80,46 +80,6 @@
   color: var(--blue-900);
 }
 
-.filter-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.filter-tab {
-  min-height: 36px;
-  padding: 6px 12px;
-  font: inherit;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text);
-  background: #fff;
-  border: 1px solid var(--blue-200);
-  border-radius: 999px;
-  cursor: pointer;
-  transition:
-    background-color 0.15s,
-    border-color 0.15s,
-    color 0.15s;
-}
-
-.filter-tab:hover {
-  background: var(--blue-100);
-  border-color: var(--blue-600);
-}
-
-.filter-tab--active {
-  color: #fff;
-  background: var(--blue-700);
-  border-color: var(--blue-700);
-}
-
-.filter-tab--active:hover {
-  color: #fff;
-  background: var(--blue-900);
-  border-color: var(--blue-900);
-}
-
 .registration-list {
   display: flex;
   flex-direction: column;
@@ -219,25 +179,6 @@
   margin: 0;
 }
 
-.demo-box {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.demo-box__title {
-  margin: 0;
-  font-weight: 700;
-  color: var(--blue-900);
-}
-
-.demo-box__creds {
-  margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-
 @media (max-width: 520px) {
   .registration-card__footer {
     flex-direction: column;
@@ -246,16 +187,6 @@
 
   .registration-card__footer .btn {
     width: 100%;
-    min-height: 44px;
-    text-align: center;
-  }
-
-  .filter-tabs {
-    width: 100%;
-  }
-
-  .filter-tab {
-    flex: 1 1 auto;
     min-height: 44px;
     text-align: center;
   }

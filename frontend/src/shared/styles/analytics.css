@@ -28,18 +28,6 @@
   color: var(--muted);
 }
 
-.analytics-filter-field input[type='date'] {
-  font: inherit;
-  font-size: 0.92rem;
-  font-weight: 400;
-  padding: 6px 10px;
-  min-height: 36px;
-  border: 1px solid var(--blue-200);
-  border-radius: 10px;
-  background: #fff;
-  color: var(--text);
-}
-
 .analytics-empty {
   display: flex;
   flex-wrap: wrap;
@@ -168,8 +156,7 @@
     align-items: stretch;
   }
 
-  .analytics-filter-field input[type='date'],
-  .analytics-filter-field select,
+  .analytics-filter-field .filter-select,
   .analytics-filters__controls .btn {
     width: 100%;
   }

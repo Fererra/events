@@ -25,21 +25,7 @@ export function LoginPage() {
     () => setError(null),
   );
 
-  const onSubmit = form.submit(async (v) => {
-    if (busy) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await login(v.email.trim(), v.password);
-      navigate(target, { replace: true });
-    } catch (e) {
-      setError(e);
-    } finally {
-      setBusy(false);
-    }
-  });
-
-  const onDemoLogin = async (email: string, password: string) => {
+  const performLogin = async (email: string, password: string) => {
     if (busy) return;
     setBusy(true);
     setError(null);
@@ -52,6 +38,8 @@ export function LoginPage() {
       setBusy(false);
     }
   };
+
+  const onSubmit = form.submit((v) => performLogin(v.email.trim(), v.password));
 
   return (
     <section className="narrow">
@@ -99,7 +87,7 @@ export function LoginPage() {
                 className="btn btn--ghost btn--sm"
                 disabled={busy}
                 onClick={() =>
-                  onDemoLogin(MOCK_DEMO_CREDENTIALS.email, MOCK_DEMO_CREDENTIALS.password)
+                  performLogin(MOCK_DEMO_CREDENTIALS.email, MOCK_DEMO_CREDENTIALS.password)
                 }
               >
                 Sign in as demo user
@@ -118,7 +106,7 @@ export function LoginPage() {
                 className="btn btn--ghost btn--sm"
                 disabled={busy}
                 onClick={() =>
-                  onDemoLogin(
+                  performLogin(
                     MOCK_DEMO_ADMIN_CREDENTIALS.email,
                     MOCK_DEMO_ADMIN_CREDENTIALS.password,
                   )

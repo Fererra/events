@@ -2,21 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { AnalyticsIcon } from '../../../shared/components/Icons';
-import { formatDateRange, formatDateTime } from '../../../shared/utils/format';
-import { EventStatusBadge, type EventStatus } from '../../events';
+import { formatDateRange, formatDateTime, formatNumber } from '../../../shared/utils/format';
+import {
+  EVENT_FILTER_TABS,
+  EventStatusBadge,
+  parseEventStatusFilter,
+  type EventFilter,
+  type EventStatus,
+} from '../../events';
 import { fetchEventAnalytics } from '../api/analytics.api';
 import type { EventAnalyticsItem } from '../types';
 
-type StatusFilter = 'ALL' | EventStatus;
 type SortKey = 'newest' | 'registrations' | 'activity';
-
-const STATUS_TABS: { key: StatusFilter; label: string }[] = [
-  { key: 'ALL', label: 'All' },
-  { key: 'ACTIVE', label: 'Active' },
-  { key: 'IN_PLANNING', label: 'In planning' },
-  { key: 'FINISHED', label: 'Finished' },
-  { key: 'CANCELLED', label: 'Cancelled' },
-];
 
 const ROW_STATUS_CLASS: Record<EventStatus, string> = {
   ACTIVE: 'analytics-table__row--active',
@@ -24,20 +21,6 @@ const ROW_STATUS_CLASS: Record<EventStatus, string> = {
   FINISHED: 'analytics-table__row--finished',
   CANCELLED: 'analytics-table__row--cancelled',
 };
-
-const numberFormatter = new Intl.NumberFormat('en-US');
-
-function parseStatusParam(raw: string | null): StatusFilter {
-  if (
-    raw === 'ACTIVE' ||
-    raw === 'IN_PLANNING' ||
-    raw === 'FINISHED' ||
-    raw === 'CANCELLED'
-  ) {
-    return raw;
-  }
-  return 'ALL';
-}
 
 function parseDateParam(raw: string | null): string {
   if (!raw) return '';
@@ -58,7 +41,7 @@ function toDateToIso(dateStr: string): string | undefined {
 
 export function AnalyticsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const status = parseStatusParam(searchParams.get('status'));
+  const status = parseEventStatusFilter(searchParams.get('status'));
   const from = parseDateParam(searchParams.get('from'));
   const to = parseDateParam(searchParams.get('to'));
 
@@ -88,7 +71,7 @@ export function AnalyticsPage() {
     return () => controller.abort();
   }, [status, from, to]);
 
-  const updateFilterParams = (next: { status?: StatusFilter; from?: string; to?: string }) => {
+  const updateFilterParams = (next: { status?: EventFilter; from?: string; to?: string }) => {
     const resolvedStatus = next.status ?? status;
     const resolvedFrom = next.from ?? from;
     const resolvedTo = next.to ?? to;
@@ -160,35 +143,35 @@ export function AnalyticsPage() {
       </div>
 
       <div className="analytics-stats" aria-label="Analytics summary">
-        <div className="card admin-stat">
-          <span className="admin-stat__label">Events</span>
-          <span className="admin-stat__value">
-            {summary ? numberFormatter.format(summary.eventsCount) : '—'}
+        <div className="card stat-card">
+          <span className="stat-card__label">Events</span>
+          <span className="stat-card__value">
+            {summary ? formatNumber(summary.eventsCount) : '—'}
           </span>
         </div>
-        <div className="card admin-stat">
-          <span className="admin-stat__label">Total registrations</span>
-          <span className="admin-stat__value">
-            {summary ? numberFormatter.format(summary.totalRegistrations) : '—'}
+        <div className="card stat-card">
+          <span className="stat-card__label">Total registrations</span>
+          <span className="stat-card__value">
+            {summary ? formatNumber(summary.totalRegistrations) : '—'}
           </span>
         </div>
-        <div className="card admin-stat">
-          <span className="admin-stat__label">Active events</span>
-          <span className="admin-stat__value">
-            {summary ? numberFormatter.format(summary.activeCount) : '—'}
+        <div className="card stat-card">
+          <span className="stat-card__label">Active events</span>
+          <span className="stat-card__value">
+            {summary ? formatNumber(summary.activeCount) : '—'}
           </span>
         </div>
-        <div className="card admin-stat">
-          <span className="admin-stat__label">Cancelled events</span>
-          <span className="admin-stat__value">
-            {summary ? numberFormatter.format(summary.cancelledCount) : '—'}
+        <div className="card stat-card">
+          <span className="stat-card__label">Cancelled events</span>
+          <span className="stat-card__value">
+            {summary ? formatNumber(summary.cancelledCount) : '—'}
           </span>
         </div>
       </div>
 
       <div className="card analytics-filters">
         <div className="filter-tabs" role="group" aria-label="Filter analytics by event status">
-          {STATUS_TABS.map((tab) => (
+          {EVENT_FILTER_TABS.map((tab) => (
             <button
               key={tab.key}
               type="button"
@@ -206,6 +189,7 @@ export function AnalyticsPage() {
             <span>From</span>
             <input
               type="date"
+              className="filter-select"
               value={from}
               onChange={(e) => updateFilterParams({ from: e.target.value })}
             />
@@ -214,6 +198,7 @@ export function AnalyticsPage() {
             <span>To</span>
             <input
               type="date"
+              className="filter-select"
               value={to}
               onChange={(e) => updateFilterParams({ to: e.target.value })}
             />
@@ -221,7 +206,7 @@ export function AnalyticsPage() {
           <label className="analytics-filter-field">
             <span>Sort by</span>
             <select
-              className="admin-filter-select"
+              className="filter-select"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortKey)}
             >
@@ -290,7 +275,7 @@ export function AnalyticsPage() {
                       <EventStatusBadge status={item.event.status} />
                     </td>
                     <td className="analytics-table__num">
-                      {numberFormatter.format(item.registrationsCount)}
+                      {formatNumber(item.registrationsCount)}
                     </td>
                     <td>
                       {item.isCancelled ? (

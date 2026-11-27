@@ -39,8 +39,8 @@ export function AdminPage() {
         venuesCount: venues.length,
         activeRegistrationsCount: registrations.filter((r) => r.status === 'ACTIVE').length,
       });
-    } catch (e) {
-      if (e instanceof DOMException && e.name === 'AbortError') return;
+    } catch {
+      // Keep previous summary counts if background refresh fails
     }
   }, []);
 
@@ -68,17 +68,17 @@ export function AdminPage() {
       </div>
 
       <div className="admin-stats" aria-label="Platform summary">
-        <div className="card admin-stat">
-          <span className="admin-stat__label">Events</span>
-          <span className="admin-stat__value">{summary ? summary.eventsCount : '—'}</span>
+        <div className="card stat-card">
+          <span className="stat-card__label">Events</span>
+          <span className="stat-card__value">{summary ? summary.eventsCount : '—'}</span>
         </div>
-        <div className="card admin-stat">
-          <span className="admin-stat__label">Venues</span>
-          <span className="admin-stat__value">{summary ? summary.venuesCount : '—'}</span>
+        <div className="card stat-card">
+          <span className="stat-card__label">Venues</span>
+          <span className="stat-card__value">{summary ? summary.venuesCount : '—'}</span>
         </div>
-        <div className="card admin-stat">
-          <span className="admin-stat__label">Active registrations</span>
-          <span className="admin-stat__value">
+        <div className="card stat-card">
+          <span className="stat-card__label">Active registrations</span>
+          <span className="stat-card__value">
             {summary ? summary.activeRegistrationsCount : '—'}
           </span>
         </div>

@@ -1,6 +1,9 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { fieldErrors } from '../../../shared/api/errors';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
+import { Modal } from '../../../shared/components/Modal';
+import { TextField } from '../../../shared/components/TextField';
+import { useForm, type FieldErrors } from '../../../shared/hooks/useForm';
 import { createVenue, updateVenue, type Venue } from '../../venues';
 
 interface VenueFormModalProps {
@@ -10,16 +13,16 @@ interface VenueFormModalProps {
   onSaved: (venue: Venue, isEdit: boolean) => void;
 }
 
-interface VenueFormValues {
+type VenueFormValues = {
   name: string;
   address: string;
   capacity: string;
-}
+};
 
-type VenueFieldErrors = Partial<Record<keyof VenueFormValues, string>>;
+const EMPTY_VALUES: VenueFormValues = { name: '', address: '', capacity: '' };
 
-function validateVenueForm(values: VenueFormValues): VenueFieldErrors {
-  const errors: VenueFieldErrors = {};
+function validateVenueForm(values: VenueFormValues): FieldErrors<VenueFormValues> {
+  const errors: FieldErrors<VenueFormValues> = {};
   const name = values.name.trim();
   const address = values.address.trim();
   const cap = values.capacity.trim();
@@ -51,68 +54,27 @@ export function VenueFormModal({ open, venue, onClose, onSaved }: VenueFormModal
   const nameInputRef = useRef<HTMLInputElement>(null);
   const isEdit = venue !== null;
 
-  const [values, setValues] = useState<VenueFormValues>({
-    name: '',
-    address: '',
-    capacity: '',
-  });
-  const [touched, setTouched] = useState<Partial<Record<keyof VenueFormValues, boolean>>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
+  const clearError = useCallback(() => setError(null), []);
+  const form = useForm(EMPTY_VALUES, validateVenueForm, clearError);
+  const { reset } = form;
+
   useEffect(() => {
     if (!open) return;
-    setValues({
+    reset({
       name: venue?.name ?? '',
       address: venue?.address ?? '',
       capacity: venue?.capacity !== null && venue ? String(venue.capacity) : '',
     });
-    setTouched({});
     setError(null);
-  }, [open, venue]);
+  }, [open, venue, reset]);
 
-  useEffect(() => {
-    if (!open) return;
-    const previousFocused =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    nameInputRef.current?.focus();
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !busy) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener('keydown', handleKeyDown);
-      previousFocused?.focus();
-    };
-  }, [open, busy, onClose]);
-
-  if (!open) return null;
-
-  const clientErrors = validateVenueForm(values);
   const serverFields = fieldErrors(error);
 
-  const handleFieldChange = (field: keyof VenueFormValues, nextValue: string) => {
-    setValues((prev) => ({ ...prev, [field]: nextValue }));
-    setError(null);
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = form.submit(async (values) => {
     if (busy) return;
-
-    setTouched({ name: true, address: true, capacity: true });
-    if (clientErrors.name || clientErrors.address || clientErrors.capacity) {
-      return;
-    }
-
     const parsedCapacity = values.capacity.trim() ? Number(values.capacity.trim()) : null;
 
     setBusy(true);
@@ -130,108 +92,57 @@ export function VenueFormModal({ open, venue, onClose, onSaved }: VenueFormModal
     } finally {
       setBusy(false);
     }
-  };
+  });
 
   return (
-    <div
-      className="dialog-backdrop"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !busy) {
-          onClose();
-        }
-      }}
-    >
-      <div
-        className="card dialog dialog--wide"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-      >
-        <div className="dialog__header">
-          <h2 id={titleId} className="dialog__title">
-            {isEdit ? 'Edit venue' : 'Add venue'}
-          </h2>
-        </div>
-
-        <form className="form" onSubmit={handleSubmit} noValidate>
-          <ErrorMessage error={error} />
-
-          <div className="field">
-            <label htmlFor="venue-name">Name</label>
-            <input
-              ref={nameInputRef}
-              id="venue-name"
-              name="name"
-              type="text"
-              value={values.name}
-              placeholder="e.g. Building 18 Conference Hall"
-              aria-invalid={Boolean(
-                (touched.name && clientErrors.name) || serverFields.name,
-              )}
-              onChange={(e) => handleFieldChange('name', e.target.value)}
-              onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
-            />
-            {touched.name && clientErrors.name && (
-              <p className="field__error">{clientErrors.name}</p>
-            )}
-          </div>
-
-          <div className="field">
-            <label htmlFor="venue-address">Address</label>
-            <input
-              id="venue-address"
-              name="address"
-              type="text"
-              value={values.address}
-              placeholder="e.g. 14 Politekhnichna St, Building 18, Kyiv"
-              aria-invalid={Boolean(
-                (touched.address && clientErrors.address) || serverFields.address,
-              )}
-              onChange={(e) => handleFieldChange('address', e.target.value)}
-              onBlur={() => setTouched((prev) => ({ ...prev, address: true }))}
-            />
-            <p className="field__hint">Each venue must have a unique address.</p>
-            {touched.address && clientErrors.address && (
-              <p className="field__error">{clientErrors.address}</p>
-            )}
-          </div>
-
-          <div className="field">
-            <label htmlFor="venue-capacity">Capacity (optional)</label>
-            <input
-              id="venue-capacity"
-              name="capacity"
-              type="number"
-              min="1"
-              step="1"
-              value={values.capacity}
-              placeholder="Leave blank if unlimited or unspecified"
-              aria-invalid={Boolean(
-                (touched.capacity && clientErrors.capacity) || serverFields.capacity,
-              )}
-              onChange={(e) => handleFieldChange('capacity', e.target.value)}
-              onBlur={() => setTouched((prev) => ({ ...prev, capacity: true }))}
-            />
-            {touched.capacity && clientErrors.capacity && (
-              <p className="field__error">{clientErrors.capacity}</p>
-            )}
-          </div>
-
-          <div className="dialog__actions">
-            <button
-              type="button"
-              className="btn btn--ghost"
-              disabled={busy}
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn" disabled={busy}>
-              {busy ? 'Saving…' : isEdit ? 'Save changes' : 'Create venue'}
-            </button>
-          </div>
-        </form>
+    <Modal open={open} titleId={titleId} wide busy={busy} initialFocusRef={nameInputRef} onClose={onClose}>
+      <div className="dialog__header">
+        <h2 id={titleId} className="dialog__title">
+          {isEdit ? 'Edit venue' : 'Add venue'}
+        </h2>
       </div>
-    </div>
+
+      <form className="form" onSubmit={onSubmit} noValidate>
+        <ErrorMessage error={error} />
+
+        <TextField
+          id="venue-name"
+          inputRef={nameInputRef}
+          label="Name"
+          placeholder="e.g. Building 18 Conference Hall"
+          invalid={!!serverFields.name}
+          {...form.bind('name')}
+        />
+
+        <TextField
+          id="venue-address"
+          label="Address"
+          placeholder="e.g. 14 Politekhnichna St, Building 18, Kyiv"
+          hint="Each venue must have a unique address."
+          invalid={!!serverFields.address}
+          {...form.bind('address')}
+        />
+
+        <TextField
+          id="venue-capacity"
+          label="Capacity (optional)"
+          type="number"
+          min="1"
+          step="1"
+          placeholder="Leave blank if unlimited or unspecified"
+          invalid={!!serverFields.capacity}
+          {...form.bind('capacity')}
+        />
+
+        <div className="dialog__actions">
+          <button type="button" className="btn btn--ghost" disabled={busy} onClick={onClose}>
+            Cancel
+          </button>
+          <button type="submit" className="btn" disabled={busy}>
+            {busy ? 'Saving…' : isEdit ? 'Save changes' : 'Create venue'}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }

@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { ApiError } from '../../../shared/api/errors';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { formatDateTime, formatPrice } from '../../../shared/utils/format';
-import { useIsAuthed } from '../../auth/store/auth.store';
+import { useIsAuthed } from '../../auth';
 import type { EventStatus } from '../../events';
 import { fetchEventTickets, registerForEvent } from '../api/registrations.api';
 import type { EventRegistration, TicketType } from '../types';
@@ -42,6 +42,82 @@ function pickInitialTicketId(tickets: TicketType[], queryTicket: string | null):
   }
   const available = tickets.find((t) => t.remaining > 0);
   return (available ?? tickets[0]).id;
+}
+
+function TicketOptionRow({
+  ticket,
+  selected,
+  interactive,
+  onSelect,
+}: {
+  ticket: TicketType;
+  selected?: boolean;
+  interactive: boolean;
+  onSelect?: () => void;
+}) {
+  const soldOut = ticket.remaining <= 0;
+  const lowStock = interactive && ticket.remaining > 0 && ticket.remaining <= 5;
+  const optionClasses = [
+    'ticket-option',
+    !interactive ? 'ticket-option--readonly' : '',
+    selected ? 'ticket-option--selected' : '',
+    soldOut ? 'ticket-option--sold-out' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const content = (
+    <>
+      {interactive && (
+        <input
+          type="radio"
+          name="ticketType"
+          value={ticket.id}
+          checked={selected}
+          onChange={onSelect}
+          className="ticket-option__radio"
+        />
+      )}
+      <div className="ticket-option__body">
+        <div className="ticket-option__head">
+          <span className="ticket-option__name">{ticket.type}</span>
+          {soldOut && <span className="badge badge--cancelled">Sold out</span>}
+          {lowStock && <span className="badge badge--warning">Only {ticket.remaining} left</span>}
+        </div>
+        <p className="ticket-option__meta">
+          {ticket.remaining} of {ticket.limit} left
+        </p>
+      </div>
+      <span className="ticket-option__price">{formatPrice(ticket.price)}</span>
+    </>
+  );
+
+  return interactive ? (
+    <label className={optionClasses}>{content}</label>
+  ) : (
+    <div className={optionClasses}>{content}</div>
+  );
+}
+
+function RegistrationSuccessBanner({ confirmation }: { confirmation: RegistrationConfirmation }) {
+  return (
+    <div className="alert alert--success registration-summary" role="status" aria-live="polite">
+      <p className="alert__title">Registration confirmed</p>
+      <dl className="kv registration-summary__details">
+        <dt>Ticket type</dt>
+        <dd>
+          {confirmation.ticketType} ({formatPrice(confirmation.price)})
+        </dd>
+        <dt>Registered at</dt>
+        <dd>{formatDateTime(confirmation.registration.registrationTimestamp)}</dd>
+        <dt>Confirmation ID</dt>
+        <dd className="registration-summary__id">{confirmation.registration.id}</dd>
+      </dl>
+      <p className="registration-summary__link">
+        <Link to="/profile">View in my registrations</Link>
+      </p>
+    </div>
+  );
 }
 
 export function EventRegistrationPanel({ eventId, eventStatus }: Props) {
@@ -152,78 +228,30 @@ export function EventRegistrationPanel({ eventId, eventStatus }: Props) {
       {tickets && tickets.length > 0 && (
         <>
           {closedNotice && (
-            <p className="ticket-notice" role="status">
+            <p className="notice" role="status">
               {closedNotice}
             </p>
           )}
 
-          {lastRegistration && (
-            <div className="alert alert--success registration-summary" role="status" aria-live="polite">
-              <p className="alert__title">Registration confirmed</p>
-              <dl className="kv registration-summary__details">
-                <dt>Ticket type</dt>
-                <dd>
-                  {lastRegistration.ticketType} ({formatPrice(lastRegistration.price)})
-                </dd>
-                <dt>Registered at</dt>
-                <dd>{formatDateTime(lastRegistration.registration.registrationTimestamp)}</dd>
-                <dt>Confirmation ID</dt>
-                <dd className="registration-summary__id">{lastRegistration.registration.id}</dd>
-              </dl>
-              <p className="registration-summary__link">
-                <Link to="/profile">View in my registrations</Link>
-              </p>
-            </div>
-          )}
+          {lastRegistration && <RegistrationSuccessBanner confirmation={lastRegistration} />}
 
           {isOpen ? (
             <form onSubmit={handleSubmit}>
               <fieldset className="ticket-fieldset">
                 <legend className="sr-only">Choose a ticket type</legend>
                 <div className="ticket-list">
-                  {tickets.map((ticket) => {
-                    const selected = selectedTicketId === ticket.id;
-                    const soldOut = ticket.remaining <= 0;
-                    const lowStock = ticket.remaining > 0 && ticket.remaining <= 5;
-                    const optionClasses = [
-                      'ticket-option',
-                      selected ? 'ticket-option--selected' : '',
-                      soldOut ? 'ticket-option--sold-out' : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ');
-
-                    return (
-                      <label key={ticket.id} className={optionClasses}>
-                        <input
-                          type="radio"
-                          name="ticketType"
-                          value={ticket.id}
-                          checked={selected}
-                          onChange={() => {
-                            setSelectedTicketId(ticket.id);
-                            setSubmitError(null);
-                          }}
-                          className="ticket-option__radio"
-                        />
-                        <div className="ticket-option__body">
-                          <div className="ticket-option__head">
-                            <span className="ticket-option__name">{ticket.type}</span>
-                            {soldOut && <span className="badge badge--cancelled">Sold out</span>}
-                            {lowStock && (
-                              <span className="badge badge--warning">
-                                Only {ticket.remaining} left
-                              </span>
-                            )}
-                          </div>
-                          <p className="ticket-option__meta">
-                            {ticket.remaining} of {ticket.limit} left
-                          </p>
-                        </div>
-                        <span className="ticket-option__price">{formatPrice(ticket.price)}</span>
-                      </label>
-                    );
-                  })}
+                  {tickets.map((ticket) => (
+                    <TicketOptionRow
+                      key={ticket.id}
+                      ticket={ticket}
+                      interactive
+                      selected={selectedTicketId === ticket.id}
+                      onSelect={() => {
+                        setSelectedTicketId(ticket.id);
+                        setSubmitError(null);
+                      }}
+                    />
+                  ))}
                 </div>
               </fieldset>
 
@@ -247,26 +275,9 @@ export function EventRegistrationPanel({ eventId, eventStatus }: Props) {
             </form>
           ) : (
             <div className="ticket-list">
-              {tickets.map((ticket) => {
-                const soldOut = ticket.remaining <= 0;
-                return (
-                  <div
-                    key={ticket.id}
-                    className={`ticket-option ticket-option--readonly${soldOut ? ' ticket-option--sold-out' : ''}`}
-                  >
-                    <div className="ticket-option__body">
-                      <div className="ticket-option__head">
-                        <span className="ticket-option__name">{ticket.type}</span>
-                        {soldOut && <span className="badge badge--cancelled">Sold out</span>}
-                      </div>
-                      <p className="ticket-option__meta">
-                        {ticket.remaining} of {ticket.limit} left
-                      </p>
-                    </div>
-                    <span className="ticket-option__price">{formatPrice(ticket.price)}</span>
-                  </div>
-                );
-              })}
+              {tickets.map((ticket) => (
+                <TicketOptionRow key={ticket.id} ticket={ticket} interactive={false} />
+              ))}
             </div>
           )}
         </>
