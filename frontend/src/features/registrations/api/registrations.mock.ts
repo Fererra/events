@@ -376,6 +376,45 @@ export function isMockTicketEventFinished(ticketId: number): boolean {
   return event?.status === 'FINISHED';
 }
 
+export interface MockEventRegistrationStats {
+  registrationsCount: number;
+  lastRegistrationAt: string | null;
+}
+
+export function getMockRegistrationStatsByEvent(): Record<number, MockEventRegistrationStats> {
+  const tickets = loadTickets();
+  const registrations = loadRegistrations();
+  const ticketToEvent = new Map<number, number>();
+  const stats: Record<number, MockEventRegistrationStats> = {};
+
+  for (const seed of tickets) {
+    ticketToEvent.set(seed.id, seed.eventId);
+    const current = stats[seed.eventId] ?? { registrationsCount: 0, lastRegistrationAt: null };
+    current.registrationsCount += seed.initialSold;
+    stats[seed.eventId] = current;
+  }
+
+  for (const reg of registrations) {
+    const eventId = ticketToEvent.get(reg.ticketId);
+    if (eventId === undefined) continue;
+
+    const current = stats[eventId] ?? { registrationsCount: 0, lastRegistrationAt: null };
+    if (reg.status === 'ACTIVE') {
+      current.registrationsCount += 1;
+    }
+
+    const regMs = Date.parse(reg.registrationTimestamp);
+    const prevMs = current.lastRegistrationAt ? Date.parse(current.lastRegistrationAt) : NaN;
+    if (!Number.isNaN(regMs) && (Number.isNaN(prevMs) || regMs > prevMs)) {
+      current.lastRegistrationAt = reg.registrationTimestamp;
+    }
+
+    stats[eventId] = current;
+  }
+
+  return stats;
+}
+
 export function cancelMockRegistration(id: string): MyRegistration | null {
   const registrations = loadRegistrations();
   const index = registrations.findIndex((reg) => reg.id === id);

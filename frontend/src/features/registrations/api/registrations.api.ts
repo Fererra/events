@@ -1,4 +1,5 @@
 import { ApiError } from '../../../shared/api/errors';
+import { recordMockEventActivity } from '../../analytics/api/analytics.mock';
 import { useAuthStore } from '../../auth/store/auth.store';
 import { findMockEventById } from '../../events/api/events.mock';
 import type {
@@ -120,6 +121,7 @@ export async function registerForEvent(
   };
 
   appendMockRegistration(registration);
+  recordMockEventActivity(eventId, registration.registrationTimestamp);
   return registration;
 }
 
@@ -171,6 +173,7 @@ export async function cancelRegistration(
     throw new ApiError(404, 'REGISTRATION_NOT_FOUND', 'Registration not found');
   }
 
+  recordMockEventActivity(Number(updated.event.id));
   return updated;
 }
 

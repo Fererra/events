@@ -1,5 +1,6 @@
 import { ApiError } from '../../../shared/api/errors';
 import type { PaginatedResponse } from '../../../shared/api/types';
+import { recordMockEventActivity } from '../../analytics/api/analytics.mock';
 import { useAuthStore, type User } from '../../auth/store/auth.store';
 import { getMockVenueById } from '../../venues/api/venues.api';
 import type { EventInput, EventItem, EventStatus, EventWithVenue } from '../types';
@@ -327,5 +328,8 @@ export async function updateEventStatus(
   const next = events.slice();
   next[index] = updated;
   saveMockEvents(next);
+  if (nextStatus === 'CANCELLED') {
+    recordMockEventActivity(id);
+  }
   return withVenue(updated);
 }
