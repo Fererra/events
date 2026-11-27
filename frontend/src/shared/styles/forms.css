@@ -23,7 +23,9 @@
   position: relative;
   display: flex;
 }
-.field input {
+.field input,
+.field select,
+.field textarea {
   font: inherit;
   font-size: 16px;
   padding: 10px 12px;
@@ -33,11 +35,22 @@
   background: #fff;
   color: var(--text);
 }
+.field textarea {
+  resize: vertical;
+  min-height: 96px;
+}
 .field input.field__input--toggle {
   padding-right: 68px;
 }
-.field input[aria-invalid='true'] {
+.field input[aria-invalid='true'],
+.field select[aria-invalid='true'],
+.field textarea[aria-invalid='true'] {
   border-color: var(--danger);
+}
+.field__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 .field__toggle {
   position: absolute;
