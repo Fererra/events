@@ -13,6 +13,7 @@ import {
 export interface FetchEventsParams {
   page?: number;
   limit?: number;
+  status?: EventStatus;
 }
 
 export const ALLOWED_STATUS_TRANSITIONS: Record<EventStatus, EventStatus[]> = {
@@ -125,12 +126,13 @@ function validateEventInput(input: Omit<EventInput, 'status'>): {
 
 // Mock implementation until backend event endpoints (/events, /events/:id) are available.
 export async function fetchEvents(
-  { page = 1, limit = 6 }: FetchEventsParams = {},
+  { page = 1, limit = 6, status }: FetchEventsParams = {},
   signal?: AbortSignal,
 ): Promise<PaginatedResponse<EventWithVenue>> {
   assertNotAborted(signal);
 
-  const events = loadMockEvents();
+  const allEvents = loadMockEvents();
+  const events = status ? allEvents.filter((event) => event.status === status) : allEvents;
   const safeLimit = Math.max(1, Math.floor(limit));
   const total = events.length;
   const totalPages = Math.max(1, Math.ceil(total / safeLimit));
@@ -144,6 +146,25 @@ export async function fetchEvents(
     total,
     totalPages,
   };
+}
+
+export async function fetchEventCountsByStatus(
+  signal?: AbortSignal,
+): Promise<Record<'ALL' | EventStatus, number>> {
+  assertNotAborted(signal);
+
+  const counts: Record<'ALL' | EventStatus, number> = {
+    ALL: 0,
+    ACTIVE: 0,
+    IN_PLANNING: 0,
+    FINISHED: 0,
+    CANCELLED: 0,
+  };
+  for (const event of loadMockEvents()) {
+    counts.ALL += 1;
+    counts[event.status] += 1;
+  }
+  return counts;
 }
 
 export async function fetchAllEvents(signal?: AbortSignal): Promise<EventWithVenue[]> {

@@ -5,6 +5,7 @@ export {
   ALLOWED_STATUS_TRANSITIONS,
   fetchEvents,
   fetchAllEvents,
+  fetchEventCountsByStatus,
   fetchEventById,
   fetchEventsByVenue,
   fetchEventCountsByVenue,

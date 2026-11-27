@@ -1,3 +1,7 @@
+.events-filters {
+  margin-bottom: 16px;
+}
+
 .entity-grid {
   display: grid;
   grid-template-columns: 1fr;
