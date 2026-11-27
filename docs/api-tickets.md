@@ -12,8 +12,10 @@
 - **Ліміт (`limit`):** додатне ціле число (`integer > 0`), інакше `400 TICKET_LIMIT_INVALID`.
 - **Ціна (`price`):** невід'ємне число з не більше ніж 2 знаками після коми (`≥ 0`), інакше `400 TICKET_PRICE_INVALID`.
 - **Контроль місткості локації:** при додаванні типу квитків рядок події блокується (`SELECT … FOR UPDATE`), і перевіряється інваріант «сума лімітів усіх типів квитків події ≤ місткості локації». При перевищенні повертається `409 TICKET_CAPACITY_EXCEEDED`.
+- **Доступність для додавання:** додавати типи квитків можна лише до подій у статусах `IN_PLANNING` або `ACTIVE`; для `FINISHED` / `CANCELLED` повертається `409 INVALID_STATUS_TRANSITION`.
 - **Унікальність назви в межах події:** дубль назви типу квитка для однієї події (без урахування регістру та зайвих пробілів) повертає `409 TICKET_TYPE_TAKEN`.
-- **Публічний API модуля (`tickets/index.ts`):** експортує `TicketInfo` та `createTicketReader` (`hasAnyForEvent` для публікації подій, `findByIdForUpdate` для атомарної реєстрації).
+- **Розрахунок залишку (`remaining`):** виконується через порт `ISoldTicketsCounter` (адаптер `RegistrationsModuleSoldCounter` над `registrations/index.ts`).
+- **Публічний API модуля (`tickets/index.ts`):** експортує `TicketInfo` та `createTicketReader` (`hasAnyForEvent` для публікації подій, `findByIdForUpdate` для атомарної реєстрації, `findByIds` для `GET /me/registrations`).
 
 ## Приклади
 

@@ -50,7 +50,7 @@ Authorization: Bearer <admin-access>
   "status": "IN_PLANNING",
   "createdAt": "2026-11-27T12:00:00.000Z"
 }
-400 { "code": "EVENT_PERIOD_INVALID", "message": "Event end time must be strictly after start time" }
+400 { "code": "EVENT_PERIOD_INVALID", "message": "Event end time must be after start time" }
 404 { "code": "VENUE_NOT_FOUND", "message": "Venue <venue-uuid> not found" }
 ```
 

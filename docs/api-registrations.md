@@ -66,5 +66,5 @@ DELETE /admin/registrations/<id>
 Authorization: Bearer <admin-access>
 
 204
-403 { "code": "FORBIDDEN", "message": "Insufficient permissions" }
+403 { "code": "FORBIDDEN", "message": "Administrator role required" }
 ```
