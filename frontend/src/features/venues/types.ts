@@ -5,3 +5,9 @@ export interface Venue {
   capacity: number | null;
   createdAt: string;
 }
+
+export interface VenueInput {
+  name: string;
+  address: string;
+  capacity: number | null;
+}

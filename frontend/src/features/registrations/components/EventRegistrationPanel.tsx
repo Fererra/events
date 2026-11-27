@@ -22,7 +22,6 @@ interface RegistrationConfirmation {
 function getClosedNotice(status: EventStatus): string | null {
   switch (status) {
     case 'IN_PLANNING':
-    case 'DRAFT':
       return 'Registration is not open yet while this event is still in preparation.';
     case 'FINISHED':
       return 'This event has already finished, so registration is closed.';

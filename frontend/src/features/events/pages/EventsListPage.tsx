@@ -5,35 +5,76 @@ import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { ClockIcon, MapPinIcon, OrganizerIcon, TicketIcon } from '../../../shared/components/Icons';
 import { Pagination, parsePageParam } from '../../../shared/components/Pagination';
 import { formatDateRange } from '../../../shared/utils/format';
-import { fetchEvents } from '../api/events.api';
+import { fetchEventCountsByStatus, fetchEvents } from '../api/events.api';
 import { EventStatusBadge } from '../components/EventStatusBadge';
-import type { EventWithVenue } from '../types';
+import type { EventStatus, EventWithVenue } from '../types';
 
 const PAGE_LIMIT = 6;
+
+type EventFilter = 'ALL' | EventStatus;
+
+const FILTER_TABS: { key: EventFilter; label: string }[] = [
+  { key: 'ALL', label: 'All' },
+  { key: 'ACTIVE', label: 'Active' },
+  { key: 'IN_PLANNING', label: 'In planning' },
+  { key: 'FINISHED', label: 'Finished' },
+  { key: 'CANCELLED', label: 'Cancelled' },
+];
+
+function parseStatusParam(raw: string | null): EventFilter {
+  if (
+    raw === 'ACTIVE' ||
+    raw === 'IN_PLANNING' ||
+    raw === 'FINISHED' ||
+    raw === 'CANCELLED'
+  ) {
+    return raw;
+  }
+  return 'ALL';
+}
 
 export function EventsListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parsePageParam(searchParams.get('page'));
+  const status = parseStatusParam(searchParams.get('status'));
 
   const [data, setData] = useState<PaginatedResponse<EventWithVenue> | null>(null);
+  const [counts, setCounts] = useState<Record<EventFilter, number> | null>(null);
   const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     const controller = new AbortController();
     setError(null);
 
-    fetchEvents({ page, limit: PAGE_LIMIT }, controller.signal)
-      .then((res) => setData(res))
+    Promise.all([
+      fetchEvents(
+        { page, limit: PAGE_LIMIT, status: status === 'ALL' ? undefined : status },
+        controller.signal,
+      ),
+      fetchEventCountsByStatus(controller.signal),
+    ])
+      .then(([res, statusCounts]) => {
+        setData(res);
+        setCounts(statusCounts);
+      })
       .catch((e) => {
         if (e instanceof DOMException && e.name === 'AbortError') return;
         setError(e);
       });
 
     return () => controller.abort();
-  }, [page]);
+  }, [page, status]);
+
+  const handleStatusChange = (nextStatus: EventFilter) => {
+    if (nextStatus === status) return;
+    setSearchParams(nextStatus === 'ALL' ? {} : { status: nextStatus });
+  };
 
   const handlePageChange = (nextPage: number) => {
-    setSearchParams(nextPage <= 1 ? {} : { page: String(nextPage) });
+    const nextParams: Record<string, string> = {};
+    if (status !== 'ALL') nextParams.status = status;
+    if (nextPage > 1) nextParams.page = String(nextPage);
+    setSearchParams(nextParams);
     window.scrollTo({ top: 0 });
   };
 
@@ -47,13 +88,33 @@ export function EventsListPage() {
         <p className="muted">Browse upcoming and past events across our venues.</p>
       </div>
 
+      <div className="events-filters">
+        <div className="filter-tabs" role="group" aria-label="Filter events by status">
+          {FILTER_TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              className={`filter-tab${status === tab.key ? ' filter-tab--active' : ''}`}
+              aria-pressed={status === tab.key}
+              onClick={() => handleStatusChange(tab.key)}
+            >
+              {counts ? `${tab.label} (${counts[tab.key]})` : tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <ErrorMessage error={error} />
 
       {!data && !error && <p className="muted">Loading events…</p>}
 
       {data && data.items.length === 0 && (
         <div className="card">
-          <p className="muted">No events are available yet.</p>
+          <p className="muted">
+            {status === 'ALL'
+              ? 'No events are available yet.'
+              : 'No events match the selected status filter.'}
+          </p>
         </div>
       )}
 
