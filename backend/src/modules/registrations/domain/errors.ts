@@ -11,3 +11,9 @@ export class TicketsSoldOutError extends ConflictError {
     super('TICKETS_SOLD_OUT', message);
   }
 }
+
+export class RegistrationAlreadyCancelledError extends ConflictError {
+  constructor(message = 'Registration is already cancelled') {
+    super('REGISTRATION_ALREADY_CANCELLED', message);
+  }
+}

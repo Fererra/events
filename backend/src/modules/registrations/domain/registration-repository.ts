@@ -2,8 +2,10 @@ import type { Registration } from './registration.js';
 
 /** Persistence port for registrations (implemented in infrastructure). */
 export interface IRegistrationRepository {
+  findByIdForUpdate(id: string): Promise<Registration | null>;
   listByUser(userId: string): Promise<Registration[]>;
   countActiveByTicketType(ticketTypeId: string): Promise<number>;
   countActiveByEventGroupedByTicketType(eventId: string): Promise<Map<string, number>>;
   add(registration: Registration): Promise<void>;
+  save(registration: Registration): Promise<void>;
 }

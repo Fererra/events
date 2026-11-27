@@ -18,6 +18,16 @@ function toDomain(row: RegistrationRow): Registration {
 export class DrizzleRegistrationRepository implements IRegistrationRepository {
   constructor(private readonly db: DbExecutorProvider) {}
 
+  async findByIdForUpdate(id: string): Promise<Registration | null> {
+    const [row] = await this.db
+      .executor()
+      .select()
+      .from(registrations)
+      .where(eq(registrations.id, id))
+      .for('update');
+    return row ? toDomain(row) : null;
+  }
+
   async listByUser(userId: string): Promise<Registration[]> {
     const rows = await this.db
       .executor()
@@ -64,5 +74,13 @@ export class DrizzleRegistrationRepository implements IRegistrationRepository {
       status: registration.status,
       registeredAt: registration.registeredAt,
     });
+  }
+
+  async save(registration: Registration): Promise<void> {
+    await this.db
+      .executor()
+      .update(registrations)
+      .set({ status: registration.status })
+      .where(eq(registrations.id, registration.id));
   }
 }

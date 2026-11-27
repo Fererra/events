@@ -11,6 +11,15 @@ export const eventRegistrationParams = {
   },
 } as const;
 
+export const registrationIdParams = {
+  type: 'object',
+  required: ['id'],
+  additionalProperties: false,
+  properties: {
+    id: { type: 'string', format: 'uuid' },
+  },
+} as const;
+
 export const createRegistrationBody = {
   type: 'object',
   required: ['ticketTypeId'],
@@ -38,4 +47,8 @@ export interface EventRegistrationParams {
 
 export interface CreateRegistrationBody {
   ticketTypeId: string;
+}
+
+export interface RegistrationIdParams {
+  id: string;
 }

@@ -4,6 +4,7 @@ import { systemClock, uuidGenerator } from './application/ports/clock.js';
 import type { IMyRegistrationsReadModel } from './application/ports/my-registrations-read-model.js';
 import type { IRegistrationContextLookup } from './application/ports/registration-context-lookup.js';
 import { ListMyRegistrationsQuery } from './application/queries/list-my-registrations.js';
+import { CancelRegistrationUseCase } from './application/use-cases/cancel-registration.js';
 import { CreateRegistrationUseCase } from './application/use-cases/create-registration.js';
 import { DrizzleMyRegistrationsReadModel } from './infrastructure/drizzle-my-registrations-read-model.js';
 import { DrizzleRegistrationRepository } from './infrastructure/drizzle-registration-repository.js';
@@ -37,6 +38,13 @@ export function createRegistrationsContainer(
       ctx.eventBus,
       clock,
       ids,
+    ),
+    cancelRegistration: new CancelRegistrationUseCase(
+      registrations,
+      contextLookup,
+      ctx.uow,
+      ctx.eventBus,
+      clock,
     ),
   };
 }

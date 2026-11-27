@@ -1,3 +1,5 @@
+import { RegistrationAlreadyCancelledError } from './errors.js';
+
 export const REGISTRATION_STATUSES = ['ACTIVE', 'CANCELLED'] as const;
 export type RegistrationStatus = (typeof REGISTRATION_STATUSES)[number];
 
@@ -12,7 +14,7 @@ export interface RegistrationProps {
 
 /** Registration aggregate root of the Registrations module. */
 export class Registration {
-  private constructor(private readonly props: RegistrationProps) {}
+  private constructor(private props: RegistrationProps) {}
 
   static create(input: Omit<RegistrationProps, 'status'>): Registration {
     return new Registration({ ...input, status: 'ACTIVE' });
@@ -40,5 +42,13 @@ export class Registration {
   }
   get registeredAt(): Date {
     return this.props.registeredAt;
+  }
+
+  /** Transitions ACTIVE → CANCELLED; rejects repeated cancellation. */
+  cancel(): void {
+    if (this.props.status === 'CANCELLED') {
+      throw new RegistrationAlreadyCancelledError();
+    }
+    this.props = { ...this.props, status: 'CANCELLED' };
   }
 }

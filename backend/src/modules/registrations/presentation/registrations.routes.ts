@@ -4,9 +4,11 @@ import type { RegistrationsContainer } from '../registrations.container.js';
 import {
   createRegistrationBody,
   eventRegistrationParams,
+  registrationIdParams,
   registrationResponse,
   type CreateRegistrationBody,
   type EventRegistrationParams,
+  type RegistrationIdParams,
 } from './schemas.js';
 
 export function registerRegistrationsRoutes(
@@ -30,6 +32,21 @@ export function registerRegistrationsRoutes(
         ticketTypeId: request.body.ticketTypeId,
       });
       return reply.code(201).send(created);
+    },
+  );
+
+  app.delete<{ Params: RegistrationIdParams }>(
+    '/registrations/:id',
+    {
+      preHandler: registrations.guards.requireAuth,
+      schema: { params: registrationIdParams },
+    },
+    async (request, reply) => {
+      await registrations.cancelRegistration.execute({
+        registrationId: request.params.id,
+        actorId: currentUser(request).userId,
+      });
+      return reply.code(204).send();
     },
   );
 }
