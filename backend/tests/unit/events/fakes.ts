@@ -1,5 +1,7 @@
+import type { DomainEvent, IEventBus } from '../../../src/shared/application/event-bus.js';
 import type { IUnitOfWork } from '../../../src/shared/application/unit-of-work.js';
 import type { IClock, IIdGenerator } from '../../../src/modules/events/application/ports/clock.js';
+import type { IEventTicketChecker } from '../../../src/modules/events/application/ports/event-ticket-checker.js';
 import type {
   IVenueLookup,
   VenueInfo,
@@ -76,6 +78,10 @@ export class InMemoryEventRepository implements IEventRepository {
     this.byId.set(event.id, clone(event));
   }
 
+  async delete(id: string) {
+    this.byId.delete(id);
+  }
+
   async findActiveEndedBefore(now: Date) {
     return [...this.byId.values()]
       .filter((e) => e.status === 'ACTIVE' && e.period.hasEnded(now))
@@ -118,10 +124,34 @@ export class SequentialIds implements IIdGenerator {
   }
 }
 
+export class FakeEventTicketChecker implements IEventTicketChecker {
+  private readonly withTickets = new Set<string>();
+
+  markHasTickets(eventId: string) {
+    this.withTickets.add(eventId);
+  }
+
+  async hasAnyForEvent(eventId: string) {
+    return this.withTickets.has(eventId);
+  }
+}
+
+export class FakeEventBus implements IEventBus {
+  readonly published: DomainEvent[] = [];
+
+  publish(event: DomainEvent): void {
+    this.published.push(event);
+  }
+
+  subscribe(): void {}
+}
+
 export function fakeEventDeps() {
   return {
     events: new InMemoryEventRepository(),
     venues: new FakeVenueLookup(),
+    tickets: new FakeEventTicketChecker(),
+    eventBus: new FakeEventBus(),
     uow: immediateUow,
     clock: new FixedClock(),
     ids: new SequentialIds(),
