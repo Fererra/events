@@ -1,26 +1,39 @@
 import type { IUnitOfWork } from '../../../src/shared/application/unit-of-work.js';
 import type { IClock, IIdGenerator } from '../../../src/modules/venues/application/ports/clock.js';
 import { VenueAddressAlreadyTakenError } from '../../../src/modules/venues/domain/errors.js';
-import type { Venue } from '../../../src/modules/venues/domain/venue.js';
+import { Venue } from '../../../src/modules/venues/domain/venue.js';
 import type { IVenueRepository } from '../../../src/modules/venues/domain/venue-repository.js';
 
 /** In-memory test doubles for the Venues ports (unit tests, no DB). */
+
+function clone(v: Venue): Venue {
+  return Venue.restore({
+    id: v.id,
+    name: v.name,
+    address: v.address,
+    normalizedAddress: v.normalizedAddress,
+    capacity: v.capacity,
+    createdAt: v.createdAt,
+  });
+}
 
 export class InMemoryVenueRepository implements IVenueRepository {
   private readonly byId = new Map<string, Venue>();
 
   async findById(id: string) {
-    return this.byId.get(id) ?? null;
+    const found = this.byId.get(id);
+    return found ? clone(found) : null;
   }
 
   async findByNormalizedAddress(normalizedAddress: string) {
-    return [...this.byId.values()].find((v) => v.normalizedAddress === normalizedAddress) ?? null;
+    const found = [...this.byId.values()].find((v) => v.normalizedAddress === normalizedAddress);
+    return found ? clone(found) : null;
   }
 
   async list({ limit, offset }: { limit: number; offset: number }) {
-    const sorted = [...this.byId.values()].sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime() || a.id.localeCompare(b.id),
-    );
+    const sorted = [...this.byId.values()]
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime() || a.id.localeCompare(b.id))
+      .map(clone);
     return { items: sorted.slice(offset, offset + limit), total: sorted.length };
   }
 
@@ -28,11 +41,17 @@ export class InMemoryVenueRepository implements IVenueRepository {
     if (await this.findByNormalizedAddress(venue.normalizedAddress)) {
       throw new VenueAddressAlreadyTakenError();
     }
-    this.byId.set(venue.id, venue);
+    this.byId.set(venue.id, clone(venue));
+  }
+
+  async save(venue: Venue) {
+    const existing = await this.findByNormalizedAddress(venue.normalizedAddress);
+    if (existing && existing.id !== venue.id) throw new VenueAddressAlreadyTakenError();
+    this.byId.set(venue.id, clone(venue));
   }
 
   all() {
-    return [...this.byId.values()];
+    return [...this.byId.values()].map(clone);
   }
 }
 
