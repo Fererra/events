@@ -22,6 +22,11 @@ function clone(r: Registration): Registration {
 export class InMemoryRegistrationRepository implements IRegistrationRepository {
   private readonly items = new Map<string, Registration>();
 
+  async findByIdForUpdate(id: string) {
+    const found = this.items.get(id);
+    return found ? clone(found) : null;
+  }
+
   async listByUser(userId: string) {
     return [...this.items.values()]
       .filter((r) => r.userId === userId)
@@ -48,6 +53,10 @@ export class InMemoryRegistrationRepository implements IRegistrationRepository {
   }
 
   async add(registration: Registration) {
+    this.items.set(registration.id, clone(registration));
+  }
+
+  async save(registration: Registration) {
     this.items.set(registration.id, clone(registration));
   }
 
