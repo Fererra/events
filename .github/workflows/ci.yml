@@ -93,7 +93,7 @@ jobs:
           curl -fsSk https://localhost:8443/api/health/db | grep -q '"ok"'
           # Registration hits the real PostgreSQL with applied migrations.
           code=$(curl -sk -o /dev/null -w '%{http_code}' -X POST https://localhost:8443/api/auth/register \
-            -H 'content-type: application/json' -d '{"email":"ci@example.com","password":"ci-password"}')
+            -H 'content-type: application/json' -d '{"surname":"CI","name":"Runner","phone":"+380501234567","email":"ci@example.com","password":"ci-password"}')
           test "$code" = "201"
           # Bootstrap admin from .env can log in.
           curl -fsSk -X POST https://localhost:8443/api/auth/login -H 'content-type: application/json' \

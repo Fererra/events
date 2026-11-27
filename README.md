@@ -100,7 +100,7 @@ npm test
 npm run test:coverage   # звіт у терміналі + backend/coverage/index.html
 ```
 
-Поточний стан: **97 тестів**, покриття **97.2%** рядків / **92.5%** гілок.
+Поточний стан: **106 тестів**, покриття **97.4%** рядків / **92.9%** гілок.
 
 CI (GitHub Actions, `.github/workflows/ci.yml`) на кожен PR і push у `main`:
 - **backend** — Prettier, ESLint (з межами модулів), typecheck, тести з покриттям (поріг 90% рядків / 85% гілок), збірка; звіт покриття — артефакт `coverage-report`;

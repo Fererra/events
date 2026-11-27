@@ -4,18 +4,18 @@
 
 **Статуси:** ✅ реалізовано й покрито тестами · 🟡 частково (бекенд готовий, частина залежить від інших модулів або не перевірена на реальному середовищі) · ⏳ не реалізовано (картка іншого учасника).
 
-> Стан на 2026-11-21. Інтеграційні тести працюють на PGlite (PostgreSQL у процесі). Розгортання в Docker Compose з реальним PostgreSQL перевіряє CI-job **Docker Compose smoke test** на кожен PR (див. [нижче](#ci)).
+> Стан на 2026-11-27. Інтеграційні тести працюють на PGlite (PostgreSQL у процесі). Розгортання в Docker Compose з реальним PostgreSQL перевіряє CI-job **Docker Compose smoke test** на кожен PR (див. [нижче](#ci)).
 
 ## Функціональні вимоги
 
 | # | Вимога (ЛР1, §3) | Картка | Статус | Реалізація | Тести |
 |---|---|---|---|---|---|
-| F1 | Реєстрація та авторизація неавторизованого користувача | ES-07, ES-08 | ✅ | `POST /auth/register`, `POST /auth/login` — `auth/application/use-cases/register-user.ts`, `login-user.ts` | `integration/auth-register.test.ts` «creates an account…»; `integration/auth-login.test.ts` «returns an access JWT…» |
+| F1 | Реєстрація та авторизація неавторизованого користувача | ES-07, ES-08 | ✅ | `POST /auth/register` (`surname`, `name`, `phone`, `email`, `password`), `POST /auth/login` — `auth/application/use-cases/register-user.ts`, `login-user.ts` | `integration/auth-register.test.ts` (7 тестів: профільні поля, спільний телефон, Argon2id, дубль/гонка, 400); `integration/auth-login.test.ts`; `unit/auth/register-user.test.ts` (10 тестів) |
 | F2 | Помилка при реєстрації з уже зайнятим email | ES-07 | ✅ | перевірка в use case + унікальний індекс `users.email` (захист від гонки) | `auth-register.test.ts` «duplicate e-mail → 409», «concurrent registrations… exactly one wins»; `unit/auth/register-user.test.ts` «rejects an e-mail that is already taken (case-insensitive)» |
 | F3 | Пара токенів і оновлення access за дійсним refresh | ES-08, ES-09 | ✅ | `TokenPairIssuer`, `RefreshTokensUseCase` (ротація, `SELECT … FOR UPDATE`) | `auth-login.test.ts` (TTL 15 хв / 7 днів, запис у БД); `auth-refresh.test.ts` (6 тестів: ротація, повторне використання, прострочений, підмінений тип, невідомий `jti`); `unit/auth/jwt-token-service.test.ts` |
 | F4 | Вихід з відкликанням refresh-токена | ES-10 | ✅ | `POST /auth/logout` — `LogoutUseCase` | `integration/auth-logout.test.ts` (відкликання в БД, refresh після logout → 401, ідемпотентність, інші сесії живі) |
 | F5 | Кожен акаунт має роль; адмін-дії недоступні користувачу | ES-11 | ✅ | `JwtGuard` / `AdminGuard` (`auth/presentation/guards.ts`), експорт через `auth/index.ts`; стартовий адмін з `ADMIN_EMAIL` | `integration/auth-guards.test.ts` (9 тестів: 401 до бізнес-логіки, 403 для `user`, 200 для `admin`, реєстрація не дає роль `admin`); `analytics-view.test.ts` «user → 403, guest → 401» |
-| F6 | Перегляд власного профілю | ES-12 | ✅ | `GET /me` — `GetProfileQuery` | `integration/auth-profile.test.ts` |
+| F6 | Перегляд власного профілю | ES-12 | ✅ | `GET /me` (`surname`, `name`, `phone`, `email`, `role`, `createdAt`) — `GetProfileQuery` | `integration/auth-profile.test.ts` (користувач, bootstrap-адмін з `null`-полями, 401) |
 | F7 | Адмін створює локацію (назва, унікальна адреса, місткість) | ES-13 | ⏳ | — | — |
 | F8 | Дубль адреси локації → помилка | ES-13 | ⏳ | — | — |
 | F9 | Перегляд переліку та деталей локацій усіма | ES-14 | ⏳ | — | — |
@@ -59,17 +59,17 @@
 
 `npm run test:coverage` (Vitest + V8). HTML-звіт: `backend/coverage/index.html`.
 
-**Разом: 97 тестів у 21 файлі, усі проходять.**
+**Разом: 106 тестів у 21 файлі, усі проходять.**
 
 | Метрика | Значення |
 |---|---|
-| Рядки / інструкції | 97.2% |
-| Гілки | 92.5% |
-| Функції | 93.9% |
+| Рядки / інструкції | 97.4% |
+| Гілки | 92.9% |
+| Функції | 94.2% |
 
 | Область | Рядки | Гілки | Функції |
 |---|---|---|---|
-| `auth` | 98.3% | 92.1% | 96.3% |
+| `auth` | 98.5% | 92.9% | 96.7% |
 | `analytics` | 99.1% | 98.3% | 96.7% |
 | `registrations` (ES-26) | 98.9% | 91.7% | 100% |
 | `events` (ES-06) | 96.2% | 100% | 75.0% |
@@ -80,8 +80,8 @@
 
 | Тип тестів | Файлів | Тестів | Що перевіряють |
 |---|---|---|---|
-| Юніт (`tests/unit`) | 11 | 50 | доменні сутності, use cases з фейковими портами, JWT, конфіг, обробник помилок, UoW, шина подій, планувальник |
-| Компонентні / API (`tests/integration`) | 10 | 47 | HTTP-ендпоінти через `fastify.inject` з реальною схемою БД (PGlite): коди відповідей, JSON, права доступу, конкурентні сценарії |
+| Юніт (`tests/unit`) | 11 | 56 | доменні сутності, use cases з фейковими портами, JWT, конфіг, обробник помилок, UoW, шина подій, планувальник |
+| Компонентні / API (`tests/integration`) | 10 | 50 | HTTP-ендпоінти через `fastify.inject` з реальною схемою БД (PGlite): коди відповідей, JSON, права доступу, конкурентні сценарії |
 | Smoke / розгортання (CI) | — | 6 перевірок | повна система в Docker Compose: web → app → PostgreSQL |
 
 ## CI
