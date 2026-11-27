@@ -110,7 +110,9 @@ CI (GitHub Actions, `.github/workflows/ci.yml`) на кожен PR і push у `m
 
 ## Виконання вимог
 
-[docs/requirements-traceability.md](docs/requirements-traceability.md) — матриця «вимога ЛР1 → картка → реалізація → тести» для всіх функціональних (F1–F25) і нефункціональних (N1–N14) вимог, а також покриття коду за модулями.
+[docs/requirements-traceability.md](docs/requirements-traceability.md) — матриця «вимога ЛР1 → картка → тест-кейси → реалізація → тести» для всіх функціональних (F1–F25) і нефункціональних (N1–N14) вимог, а також покриття коду за модулями.
+
+[docs/test-plan.md](docs/test-plan.md) — стратегія тестування та повний каталог позитивних, негативних, граничних і конкурентних тест-кейсів (`TC-*`).
 
 ## Команда
 
